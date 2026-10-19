@@ -1,0 +1,12 @@
+# Virtual environment (each person creates their own)
+venv/
+
+# Python cache files (regenerated automatically)
+__pycache__/
+*.pyc
+
+# Secrets: never commit
+.env
+
+# Database certificate (download it from Aiven)
+certs/*.pem
