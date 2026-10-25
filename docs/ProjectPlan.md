@@ -502,8 +502,8 @@ flowchart LR
     N19_2 --> N20_2
     N19_3 --> N20_2
     N20_2 --> FINISH((Code freeze<br/>25 Dec))
-    classDef critical fill:#ffe1e1,stroke:#d33,stroke-width:3px;
-    classDef main fill:#ffb3b3,stroke:#a00,stroke-width:4px;
+    classDef critical fill:#ffe1e1,stroke:#d33,stroke-width:3px,color:#111;
+    classDef main fill:#ffb3b3,stroke:#a00,stroke-width:4px,color:#111;
     class N2_1,N2_2,N4_1,N8_1,N9_1,N12_1,N13_1,N14_1,N15_1,N15_2,N16_2,N17_2,N18_2,N19_2 critical;
     class N1_1,N1_2,N3_1,N3_2,N4_2,N8_2,N9_2,N12_2,N13_2,N14_2,N19_3,N20_2 main;
 ```
@@ -548,6 +548,7 @@ The main critical path adds up to 1 × 12 = 12 weeks, which is the length of the
 Critical activities are marked `crit` (shown in red). Milestones are the report deadlines and the end-of-term dates.
 
 ```mermaid
+%%{init: {'themeVariables': {'critBkgColor': '#b85c5c', 'critBorderColor': '#7f1d1d'}}}%%
 gantt
     title Clublibrary — Project Timeline (Fall 2026)
     dateFormat YYYY-MM-DD
