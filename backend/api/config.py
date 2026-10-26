@@ -17,3 +17,14 @@ class Config:
         # Encrypted connection, verified with Aiven's certificate
         "connect_args": {"ssl": {"ca": str(BACKEND_DIR / "certs" / "ca.pem")}},
     }
+
+    # Photo and video storage; the SDK reads this URL
+    CLOUDINARY_URL = os.getenv("CLOUDINARY_URL")
+
+    # Gmail SMTP for verification and password-reset e-mails
+    MAIL_SERVER = os.getenv("MAIL_SERVER", "smtp.gmail.com")
+    MAIL_PORT = int(os.getenv("MAIL_PORT", 587))
+    MAIL_USE_TLS = True
+    MAIL_USERNAME = os.getenv("MAIL_USERNAME")
+    MAIL_PASSWORD = os.getenv("MAIL_PASSWORD")
+    MAIL_DEFAULT_SENDER = os.getenv("MAIL_DEFAULT_SENDER")
