@@ -42,7 +42,9 @@ classDiagram
         +int club_id FK
         +enum role : member | manager | captain
         +datetime joined_at
+        +smallint captain_flag GENERATED
         UNIQUE(user_id, club_id)
+        UNIQUE(captain_flag, club_id) one Captain per club
     }
 
     class MembershipRequest {
