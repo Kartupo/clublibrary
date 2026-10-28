@@ -21,6 +21,7 @@ class Club(db.Model):
         db.Enum("pending", "approved", "rejected", name="club_status"),
         nullable=False,
         default="pending",
+        server_default="pending",
         index=True,
     )
     rejection_reason = db.Column(db.String(500))
@@ -53,6 +54,7 @@ class Membership(db.Model):
         db.Enum("member", "manager", "captain", name="membership_role"),
         nullable=False,
         default="member",
+        server_default="member",
     )
     joined_at = db.Column(db.DateTime, nullable=False, server_default=db.func.now())
 
@@ -80,6 +82,7 @@ class MembershipRequest(db.Model):
         db.Enum("pending", "approved", "rejected", name="membership_request_status"),
         nullable=False,
         default="pending",
+        server_default="pending",
     )
     decided_by_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="SET NULL"))
     decided_at = db.Column(db.DateTime)

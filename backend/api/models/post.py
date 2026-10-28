@@ -32,7 +32,7 @@ class PostMedia(db.Model):
     media_type = db.Column(db.Enum("image", "video", name="media_type"), nullable=False)
     url = db.Column(db.String(500), nullable=False)
     public_id = db.Column(db.String(255))  # Cloudinary id, needed to delete the file
-    position = db.Column(db.SmallInteger, nullable=False, default=0)
+    position = db.Column(db.SmallInteger, nullable=False, default=0, server_default="0")
 
     post = db.relationship("Post", back_populates="media")
 

@@ -24,6 +24,7 @@ class Event(db.Model):
         db.Enum("public", "members", name="event_visibility"),
         nullable=False,
         default="public",
+        server_default="public",
     )
     created_at = db.Column(db.DateTime, nullable=False, server_default=db.func.now())
     updated_at = db.Column(
