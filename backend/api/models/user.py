@@ -15,6 +15,7 @@ class User(db.Model):
     study_year = db.Column(db.SmallInteger)
     interests = db.Column(db.String(500))
     photo_url = db.Column(db.String(500))  # Cloudinary URL
+    photo_public_id = db.Column(db.String(255))  # Cloudinary id, needed to delete the file
 
     is_verified = db.Column(db.Boolean, nullable=False, default=False, server_default=db.text("0"))  # e-mail verified
     is_admin = db.Column(db.Boolean, nullable=False, default=False, server_default=db.text("0"))  # Platform Administrator

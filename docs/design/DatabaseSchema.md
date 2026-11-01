@@ -15,6 +15,7 @@ classDiagram
         +smallint study_year
         +string interests
         +string photo_url
+        +string photo_public_id
         +bool is_verified
         +bool is_admin
         +datetime created_at
@@ -24,9 +25,10 @@ classDiagram
         +int id PK
         +string name UK
         +enum kind : club | project_team
-        +string category
+        +enum category : see notes
         +text description
         +string logo_url
+        +string logo_public_id
         +string contact_info
         +enum status : pending | approved | rejected
         +string rejection_reason
@@ -55,6 +57,8 @@ classDiagram
         +int decided_by_id FK
         +datetime decided_at
         +datetime created_at
+        +smallint pending_flag GENERATED
+        UNIQUE(pending_flag, user_id, club_id) one pending request
     }
 
     class Follow {
@@ -76,6 +80,7 @@ classDiagram
         +enum visibility : public | members
         +datetime created_at
         +datetime updated_at
+        CHECK(ends_at IS NULL OR ends_at >= starts_at)
     }
 
     class RSVP {
@@ -136,3 +141,31 @@ classDiagram
     Post "1" *-- "0..*" Comment : has
     User "1" --> "0..*" Comment : writes
 ```
+
+## Notes
+
+**Club categories.** `clubs.category` is an enum used by the Discover filters: `technology`, `engineering`, `science`, `arts`, `music`, `sports`, `culture`, `social`, `career`, `entrepreneurship`, `other`. Values are stored in lowercase English; the clients show display names. Adding a category needs a migration.
+
+**Enforced by the database**
+
+| Rule | How |
+|---|---|
+| A user has at most one membership per club | `UNIQUE(user_id, club_id)` on `memberships` |
+| A club has at most one Captain | `captain_flag` is generated from `role` (1 for the Captain, NULL otherwise) with `UNIQUE(captain_flag, club_id)` |
+| A user has at most one pending join request per club | `pending_flag` is generated from `status` (1 while pending, NULL otherwise) with `UNIQUE(pending_flag, user_id, club_id)`; rejected or approved requests do not block a new one |
+| An event cannot end before it starts | `CHECK(ends_at IS NULL OR ends_at >= starts_at)` on `events` |
+| One RSVP, one like and one follow per user | Composite primary keys on `rsvps`, `likes`, `follows` |
+| `updated_at` / `responded_at` refresh on every change | `DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP`, so raw SQL updates are covered too |
+
+The generated flags are computed only from `role` / `status`, never from `user_id` or `club_id`: MySQL rejects generated columns based on a column whose foreign key has `ON DELETE CASCADE`. Application code never writes them.
+
+**Enforced by the API, not the database**
+
+- A Captain can only exist on an approved club. Approving a club request sets `clubs.status` and creates the requester's Captain membership in one transaction.
+- An approved club always has a Captain; leaving is blocked for a Captain until Captaincy is handed over.
+- A user who is already a member cannot send a join request.
+- A post must have a body, at least one media item, or both (media live in `post_media`, so a CHECK cannot see them).
+
+**Cloudinary.** Every stored image or video keeps its Cloudinary `public_id` (`users.photo_public_id`, `clubs.logo_public_id`, `post_media.public_id`) so a replaced or deleted file can also be removed from Cloudinary.
+
+**E-mail verification and password reset** need no table. Links carry signed, expiring `itsdangerous` tokens. A reset token also includes a short fragment of the current `password_hash`; once the password changes, the fragment no longer matches and every earlier reset link stops working.

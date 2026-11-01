@@ -13,7 +13,10 @@ class Post(db.Model):
     body = db.Column(db.Text)
     created_at = db.Column(db.DateTime, nullable=False, server_default=db.func.now(), index=True)
     updated_at = db.Column(
-        db.DateTime, nullable=False, server_default=db.func.now(), onupdate=db.func.now()
+        db.DateTime,
+        nullable=False,
+        server_default=db.text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"),
+        onupdate=db.func.now(),
     )
 
     media = db.relationship(

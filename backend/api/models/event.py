@@ -5,7 +5,11 @@ class Event(db.Model):
     """An event created by a Captain or Manager (T-12)."""
 
     __tablename__ = "events"
-    __table_args__ = (db.Index("ix_events_club_starts", "club_id", "starts_at"),)
+    __table_args__ = (
+        db.Index("ix_events_club_starts", "club_id", "starts_at"),
+        # An event with an end time cannot end before it starts
+        db.CheckConstraint("ends_at IS NULL OR ends_at >= starts_at", name="ck_events_end_after_start"),
+    )
 
     id = db.Column(db.Integer, primary_key=True)
     club_id = db.Column(db.Integer, db.ForeignKey("clubs.id", ondelete="CASCADE"), nullable=False)
@@ -28,7 +32,10 @@ class Event(db.Model):
     )
     created_at = db.Column(db.DateTime, nullable=False, server_default=db.func.now())
     updated_at = db.Column(
-        db.DateTime, nullable=False, server_default=db.func.now(), onupdate=db.func.now()
+        db.DateTime,
+        nullable=False,
+        server_default=db.text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"),
+        onupdate=db.func.now(),
     )
 
     rsvps = db.relationship("RSVP", back_populates="event", cascade="all, delete-orphan")
@@ -43,7 +50,10 @@ class RSVP(db.Model):
     event_id = db.Column(db.Integer, db.ForeignKey("events.id", ondelete="CASCADE"), primary_key=True)
     response = db.Column(db.Enum("going", "not_going", name="rsvp_response"), nullable=False)
     responded_at = db.Column(
-        db.DateTime, nullable=False, server_default=db.func.now(), onupdate=db.func.now()
+        db.DateTime,
+        nullable=False,
+        server_default=db.text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"),
+        onupdate=db.func.now(),
     )
 
     event = db.relationship("Event", back_populates="rsvps")

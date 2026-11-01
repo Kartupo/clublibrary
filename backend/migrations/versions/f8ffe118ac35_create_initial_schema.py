@@ -169,22 +169,11 @@ def downgrade():
     op.drop_table('post_media')
     op.drop_table('likes')
     op.drop_table('comments')
-    with op.batch_alter_table('posts', schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f('ix_posts_created_at'))
-        batch_op.drop_index('ix_posts_club_created')
-
     op.drop_table('posts')
     op.drop_table('memberships')
     op.drop_table('membership_requests')
     op.drop_table('follows')
-    with op.batch_alter_table('events', schema=None) as batch_op:
-        batch_op.drop_index('ix_events_club_starts')
-
     op.drop_table('events')
-    with op.batch_alter_table('clubs', schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f('ix_clubs_status'))
-        batch_op.drop_index(batch_op.f('ix_clubs_category'))
-
     op.drop_table('clubs')
     op.drop_table('users')
     # ### end Alembic commands ###
