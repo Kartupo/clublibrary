@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 
+import certifi
 from dotenv import load_dotenv
 
 BACKEND_DIR = Path(__file__).resolve().parent.parent
@@ -14,8 +15,8 @@ class Config:
         # Check each connection before use; cloud databases drop idle ones
         "pool_pre_ping": True,
         "pool_recycle": 280,
-        # Encrypted connection, verified with Aiven's certificate
-        "connect_args": {"ssl": {"ca": str(BACKEND_DIR / "certs" / "ca.pem")}},
+        # Encrypted connection; TiDB Cloud's certificate is publicly trusted
+        "connect_args": {"ssl": {"ca": certifi.where()}},
     }
 
     # Photo and video storage; the SDK reads this URL

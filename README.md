@@ -17,7 +17,7 @@ All members work as full-stack developers and take part in every phase of the pr
  
 ## Technology Stack
  
-- **Backend:** Python, Flask (REST API), MySQL hosted on Aiven, SQLAlchemy (Flask-SQLAlchemy) + Flask-Migrate, Flask-JWT-Extended + bcrypt, Cloudinary, Docker
+- **Backend:** Python, Flask (REST API), TiDB Cloud (MySQL-compatible), SQLAlchemy (Flask-SQLAlchemy) + Flask-Migrate, Flask-JWT-Extended + bcrypt, Cloudinary
 - **Frontend:** Next.js with TypeScript, Tailwind CSS, shadcn/ui, hosted on Vercel
 - **Mobile:** React Native with Expo (TypeScript), for Android and iOS
 
@@ -42,7 +42,7 @@ venv\Scripts\activate
 pip install -r requirements.txt
 ```
  
-Copy `backend/.env.example` to `backend/.env` and fill it in (ask the Project Manager for the database password), put `ca.pem` in `backend/certs/`, then run:
+Copy `backend/.env.example` to `backend/.env` and fill it in (ask the Project Manager for the database password), then run:
  
 ```powershell
 flask --app app run --debug

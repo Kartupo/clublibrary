@@ -35,7 +35,7 @@ def check_smtp():
 
 
 all_ok = True
-for name, check in [("Aiven MySQL", check_database), ("Cloudinary", check_cloudinary), ("Gmail SMTP", check_smtp)]:
+for name, check in [("TiDB Cloud", check_database), ("Cloudinary", check_cloudinary), ("Gmail SMTP", check_smtp)]:
     try:
         check()
         print(f"OK    {name}")
