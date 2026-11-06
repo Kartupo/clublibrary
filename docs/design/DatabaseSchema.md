@@ -167,7 +167,16 @@ Handing over Captaincy must demote the old Captain **before** promoting the new 
 - The database runs on TiDB Cloud Starter (MySQL-compatible). Stored generated columns cannot be added with `ALTER TABLE`; a new one needs the table to be created with it.
 - CHECK constraints are only enforced when the cluster setting `tidb_enable_check_constraint` is `ON` (set once with `SET GLOBAL`; it is on for our cluster). A constraint created while it was off is ignored.
 - String literals in generated column expressions are written as `_utf8mb4'captain'`, the form TiDB reports back, so `flask db check` sees no false difference.
-- Tables use the `utf8mb4_bin` collation: text comparisons are case-sensitive, so `Ali@x.com` and `ali@x.com` are different e-mails.
+- Tables use the `utf8mb4_bin` collation: equality and unique keys are case- and accent-sensitive, so `Ali@x.com` and `ali@x.com` are different e-mails. Two rules keep lists and search friendly:
+  - **Sorting.** Alphabetical lists (club names, event titles) sort with the `utf8mb4_0900_ai_ci` collation: `ORDER BY name COLLATE utf8mb4_0900_ai_ci`, in SQLAlchemy `order_by(Club.name.collate("utf8mb4_0900_ai_ci"))`. This gives `ağ, Bilim, Çevre, İnovasyon, Robotics, Zeka`; the plain byte order would be `Bilim, Robotics, Zeka, ağ, Çevre, İnovasyon`.
+  - **Search.** Search ignores case and Turkish accents, so `cevre` finds `Çevre` and `siir` finds `Şiir`. Compare with the same collation, and first replace the dotless `ı` with `i` on both sides, because the collation treats `ı` as a separate letter (otherwise `isik` would not find `Işık`):
+
+    ```python
+    searchable = func.replace(Club.name, "ı", "i").collate("utf8mb4_0900_ai_ci")
+    query = query.where(searchable.contains(term.replace("ı", "i"), autoescape=True))
+    ```
+
+    `autoescape=True` makes a `%` or `_` typed by the user match literally.
 - `AUTO_INCREMENT` ids are unique but not consecutive, and a newer row can get a smaller id. Sort by `created_at`, never by `id`.
 
 **Enforced by the API, not the database**
