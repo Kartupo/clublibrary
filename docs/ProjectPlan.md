@@ -11,7 +11,7 @@
 | **Group members** | Melih Kart — 150200701, Beyza Arısan — 150230069, Eslem Azra Yılmaz — 150220110, Yusuf Erdem Cıdık — 040230205 |
 | **Instructor** | Ayşe Tosun Kühn, Tolga Ovatman |
 | **Submission date** | 2026-10-25 |
-| **Document version** | 1.0 |
+| **Document version** | 1.1 |
 
 ---
 
@@ -29,7 +29,7 @@ The project belongs to the education domain and focuses on student life outside 
 - **User Accounts & Authentication** – Sign-up and login with a university e-mail address, e-mail verification, password reset, and user profiles (department, year, interests).
 - **Club & Project Team Management** – Clubs and project teams work the same way. A student requests a new club or project team, which stays pending until a Platform Administrator checks whether it is legitimate and approves or rejects it. Once it is approved, the student who requested it becomes its Captain; captains are assigned only to approved clubs and project teams. Each club and project team has a profile page (description, logo, contact info) and a member list, students join through membership requests and can leave, and the Captain and Managers can remove members.
 - **Roles & Permissions** – Role-based access with four roles in each club or project team: Student (non-member), Member, Manager, and Captain. Captains assign managers and can hand over the Captain role to another member; each role has defined rights over content and events. In addition, a platform-level Platform Administrator role approves or rejects requests for new clubs and project teams and can change the Captain of a club or project team when needed.
-- **Events & Calendar** – Clubs and project teams create events of different types (social events, lectures/talks, meetings, workshops) with date, time, and location; member-only or public visibility; RSVP/attendance; a personal calendar of upcoming events.
+- **Events & Calendar** – Clubs and project teams create events of different types (social events, lectures/talks, meetings, workshops) with date, time, and location; member-only or public visibility; RSVP (going / not going) with RSVP lists on the event page; a personal calendar of upcoming events.
 - **Posts & Media Feed** – Posts by clubs and project teams with text, photos, and videos; likes and comments; a feed for each club and team, and a personal home feed built from joined and followed clubs and teams.
 - **Discover** – Browsing and searching clubs, project teams, upcoming public events, and popular posts, with filtering by club category and event type.
 
@@ -61,13 +61,16 @@ Number each project deliverable. Use the same IDs in the task table below. **Ple
 
 | Deliverable ID | Deliverable name | Description / contents | Acceptance criterion |
 |---|---|---|---|
-| D-01 | Backend REST API | Flask REST API under `/api` that serves both the web and the mobile application: authentication (including verification and password-reset e-mails sent through Gmail SMTP), users, clubs and project teams, memberships, roles, follows, events, RSVPs, calendar, posts, likes and comments, feeds, discover, and platform administration. Photos and videos are stored on Cloudinary. The API is deployed on Vercel. | Every endpoint needed by T-03–T-18 is implemented, returns JSON, enforces JWT and role checks where required, and passes the API tests in `tests/`. |
-| D-02 | Database | MySQL database hosted on Aiven with the full schema (for example users, clubs and project teams with their approval status, categories, memberships and roles, follows, events, RSVPs, posts, likes, and comments), managed by Flask-Migrate migrations, plus a dummy-data seed script. | The whole schema is created from the migrations on an empty database with no manual steps; the seed script fills realistic demo data; foreign keys and unique constraints reject invalid data (for example duplicate memberships or RSVPs). |
-| D-03 | Web application | Responsive Next.js (TypeScript) web application built with Tailwind CSS and shadcn/ui and hosted on Vercel. It covers all in-scope features, including the Platform Administrator screens, which exist only in the web application. | Every in-scope feature can be used in the browser, connected to the deployed API (D-01), on desktop and phone-size screens, and the site is reachable at its Vercel URL. |
-| D-04 | Mobile application | React Native with Expo (TypeScript) application for Android and iOS that uses the same backend (D-01). It covers all in-scope features for students, members, managers, and captains; the Platform Administrator screens are not included. | Every in-scope student, member, manager, and captain feature can be used on real Android and iOS devices through Expo Go or an installable build. |
-| D-05 | Test suite | Automated backend tests (unit and API/integration) in `tests/`, plus manual test cases for the web and mobile applications. | The automated tests run with one command and pass; every functional task T-03–T-18 is covered by at least one automated or manual test case, and the results are recorded in the Software Test Report. |
-| D-06 | Deployed release | The running system: the backend and the web application deployed on Vercel, the database on Aiven, a mobile build, and release `v1.0.0` on the `main` branch. | Release `v1.0.0` is created on `main` by 25.12.2026 (code freeze), and the full system works end to end in the demo on 26.12.2026. |
-| D-07 | Documentation | Repository README (project description, team roles, and setup and run guide), API endpoint documentation, and the course reports: Project Charter, Project Plan, Requirement Specification, Requirement Analysis, Software Design, and Software Test Reports. | Each report is submitted in `docs/` on its own branch with a pull request and a release by its deadline, and merged after review; a new team member can run the project by following the README. |
+| D-01 | Core and account API | Foundation of the Flask REST API under `/api`, used by both the web and the mobile application: configuration, the Aiven database connection, health-check endpoints, one JSON error format, JWT authentication and role-check decorators, and signed Cloudinary upload parameters. On top of it: sign-up with e-mail verification and login, logout, and password reset (e-mails sent through Gmail SMTP), and user profiles. Deployed on Vercel. | Unverified accounts cannot log in; verification and password-reset links expire, and a reset link stops working once the password has been changed; protected endpoints return `401` without a valid token and `403` for a role without the right; no response contains a password hash; the related API tests in `tests/` pass. |
+| D-02 | Club and community API | Endpoints for club and project team requests, Platform Administrator approval or rejection and captain change, club and project team profiles, roles and role management, membership requests and membership management, and follow / unfollow. | Only Platform Administrators can approve or reject requests; approval makes the requester the Captain and first member in one transaction; duplicate memberships and duplicate pending membership requests are rejected; every action is allowed only for the roles defined in T-08; the related API tests in `tests/` pass. |
+| D-03 | Events and calendar API | Endpoints for creating, editing, and deleting events, RSVPs (going / not going), the going / not-going lists, and the personal calendar. | Non-members cannot see member-only events or their RSVP lists; each user has at most one RSVP per event; the calendar returns only upcoming events the user is allowed to see, in date order; the related API tests in `tests/` pass. |
+| D-04 | Content and discovery API | Endpoints for posts with photos and videos (stored on Cloudinary), likes, comments, club and personal home feeds, and Discover (browsing, search, and filters). | A post has text, media, or both; each user can like a post at most once; feeds and search results are paginated, newest first, and respond within 1 second on the seeded data; only approved clubs and public events appear in Discover; the related API tests in `tests/` pass. |
+| D-05 | Database | MySQL database hosted on Aiven with the full schema (for example users, clubs and project teams with their approval status, categories, memberships and roles, follows, events, RSVPs, posts, likes, and comments), managed by Flask-Migrate migrations, plus a dummy-data seed script. | The whole schema is created from the migrations on an empty database with no manual steps; the seed script fills realistic demo data; foreign keys and unique constraints reject invalid data (for example duplicate memberships or RSVPs). |
+| D-06 | Web application | Responsive Next.js (TypeScript) web application built with Tailwind CSS and shadcn/ui and hosted on Vercel. It covers all in-scope features, including the Platform Administrator screens, which exist only in the web application. | Every in-scope feature can be used in the browser, connected to the deployed API (D-01–D-04), on desktop and phone-size screens, and the site is reachable at its Vercel URL. |
+| D-07 | Mobile application | React Native with Expo (TypeScript) application for Android and iOS that uses the same backend API (D-01–D-04). It covers all in-scope features for students, members, managers, and captains; the Platform Administrator screens are not included. | Every in-scope student, member, manager, and captain feature can be used on real Android and iOS devices through Expo Go or an installable build. |
+| D-08 | Test suite | Automated backend tests (unit and API/integration) in `tests/`, plus manual test cases for the web and mobile applications. | The automated tests run with one command and pass; every functional task T-03–T-18 is covered by at least one automated or manual test case, and the results are recorded in the Software Test Report. |
+| D-09 | Deployed release | The running system: the backend and the web application deployed on Vercel, the database on Aiven, a mobile build, and release `v1.0.0` on the `main` branch. | Release `v1.0.0` is created on `main` by 25.12.2026 (code freeze), and the full system works end to end in the demo on 26.12.2026. |
+| D-10 | Documentation | Repository README (project description, team roles, and setup and run guide), API endpoint documentation, and the course reports: Project Charter, Project Plan, Requirement Specification, Requirement Analysis, Software Design, and Software Test Reports. | Each report is submitted in `docs/` on its own branch with a pull request and a release by its deadline, and merged after review; a new team member can run the project by following the README. |
 
 ### 1.3 Functional Requirements / Tasks
 
@@ -75,29 +78,29 @@ Number the functional tasks and map **every task** to one or more deliverables f
 
 | Task ID | Functional requirement / task | Description | Related deliverable ID(s) |
 |---|---|---|---|
-| T-01 | Project setup and architecture | Set up the repository structure, the Flask application with its connection to the Aiven database, the Next.js and Expo application skeletons, environment configuration, and the Cloudinary and Gmail SMTP accounts; design the database schema and create the first migration. | D-01, D-02, D-03, D-04 |
-| T-02 | UI/UX design | Design the screen layouts, navigation, and a shared visual style (wireframes) for the web and mobile applications, so that both offer the same main flows with a consistent look. | D-03, D-04 |
-| T-03 | Sign-up and e-mail verification | A student signs up with a university e-mail address (`@itu.edu.tr` in this project) and a password; the account becomes active only after the student opens the verification link sent by e-mail. The link expires after a set time, and the student can request a new one. | D-01, D-02, D-03, D-04 |
-| T-04 | Login, logout, and password reset | A verified user logs in and receives a JWT access token, can log out, and can set a new password through a reset link sent by e-mail, which also expires after a set time. | D-01, D-02, D-03, D-04 |
-| T-05 | User profile | A user views and edits their own profile (name, photo, department, year, interests) and can view other users' profiles. | D-01, D-02, D-03, D-04 |
-| T-06 | Club / project team request | A logged-in student requests a new club or project team with its name, type (club or project team), category, and description. The request is stored as *Pending*; the requester can see its status (Pending, Approved, Rejected) and, if it is rejected, the reason. Once it is approved, the requester becomes its Captain and first member. | D-01, D-02, D-03, D-04 |
-| T-07 | Platform Administrator approval and captain change | A Platform Administrator sees the list of pending requests, checks whether each club or project team is legitimate, and approves it or rejects it with a reason. Only approved clubs and project teams are visible on the platform. The Platform Administrator can also change the Captain of a club or project team when needed (for example, when the Captain graduates or leaves); the new Captain must already be a member, and the previous Captain becomes a regular Member. Platform Administrator accounts are created by the team, not through sign-up, and these screens exist only in the web application. | D-01, D-02, D-03 |
-| T-08 | Roles and permissions | All features require a logged-in, verified account, so "public" means visible to every logged-in user. Each club or project team has four roles. A Student (non-member) sees public content; a Member also sees member-only events; a Manager can also manage events, posts, comments on the club's or team's posts, the profile page, and membership requests, and can remove Members; the Captain can also make a Member a Manager or return a Manager to Member, remove Managers from the club or team, and hand over the Captain role to another member, after which the previous Captain becomes a regular Member. The backend checks these rights on every request. | D-01, D-02, D-03, D-04 |
-| T-09 | Club / project team profile page | Each approved club or project team has a public profile page (description, logo, contact info) that its Captain and Managers can edit. | D-01, D-02, D-03, D-04 |
-| T-10 | Membership management | A student sends a membership request to a club or project team; its Captain or a Manager approves or rejects it; the Captain or a Manager can also remove a Member from the club or team, and only the Captain can remove a Manager; members can leave, but a Captain must hand over the Captain role first; the member list is shown on the profile page. | D-01, D-02, D-03, D-04 |
-| T-11 | Follow / unfollow | A user follows or unfollows a club or project team to see its posts in their home feed and its public events in their calendar without becoming a member. | D-01, D-02, D-03, D-04 |
-| T-12 | Event management | Captains and Managers create, edit, and delete events of different types (social event, lecture/talk, meeting, workshop) with date, time, location, and public or member-only visibility. | D-01, D-02, D-03, D-04 |
-| T-13 | RSVP and attendance | A user responds to an event as going or not going (only members can respond to member-only events), and the Captain and Managers see the attendee list (the users who answered going). | D-01, D-02, D-03, D-04 |
-| T-14 | Personal calendar | A user sees a calendar of upcoming events from the clubs and project teams they joined or follow, with the events they are going to highlighted. | D-01, D-03, D-04 |
-| T-15 | Posts with media | Captains and Managers publish posts on behalf of their club or project team with text, photos, and videos (uploaded directly from the app to Cloudinary), and can edit or delete them. | D-01, D-02, D-03, D-04 |
-| T-16 | Likes and comments | Logged-in users like and unlike posts, and add and delete their own comments; the Captain and Managers can also delete comments on their club's or team's posts. | D-01, D-02, D-03, D-04 |
-| T-17 | Feeds | Each club and project team has its own feed, and each user has a personal home feed built from the clubs and project teams they joined or follow; feeds show the newest posts first and load page by page. | D-01, D-03, D-04 |
-| T-18 | Discover and search | Users browse clubs, project teams, upcoming public events, and popular posts (ranked by likes); search clubs and project teams by name and events by title; and filter clubs and project teams by category and events by type. | D-01, D-03, D-04 |
-| T-19 | Testing | Write and run automated backend tests and manual test cases for the web and mobile applications, and create the dummy-data seed script used for testing and the demo. | D-02, D-05 |
-| T-20 | Deployment and release | Deploy the backend and the web application to Vercel, produce the mobile build, and publish release `v1.0.0` on `main`. | D-06 |
-| T-21 | Documentation | Write the README, the API documentation, and the course reports. | D-07 |
+| T-01 | Project setup and architecture | Set up the repository structure, the Flask application with its connection to the Aiven database, the Next.js and Expo application skeletons, environment configuration, and the Cloudinary and Gmail SMTP accounts; design the database schema and create the first migration. | D-01, D-05, D-06, D-07 |
+| T-02 | UI/UX design | Design the screen layouts, navigation, and a shared visual style (wireframes) for the web and mobile applications, so that both offer the same main flows with a consistent look. | D-06, D-07 |
+| T-03 | Sign-up and e-mail verification | A student signs up with a university e-mail address (`@itu.edu.tr` in this project) and a password; the account becomes active only after the student opens the verification link sent by e-mail. The link expires after a set time, and the student can request a new one. | D-01, D-05, D-06, D-07 |
+| T-04 | Login, logout, and password reset | A verified user logs in and receives a JWT access token, can log out, and can set a new password through a reset link sent by e-mail, which also expires after a set time. | D-01, D-05, D-06, D-07 |
+| T-05 | User profile | A user views and edits their own profile (name, photo, department, year, interests) and can view other users' profiles. | D-01, D-05, D-06, D-07 |
+| T-06 | Club / project team request | A logged-in student requests a new club or project team with its name, type (club or project team), category, and description. The request is stored as *Pending*; the requester can see its status (Pending, Approved, Rejected) and, if it is rejected, the reason. Once it is approved, the requester becomes its Captain and first member. | D-02, D-05, D-06, D-07 |
+| T-07 | Platform Administrator approval and captain change | A Platform Administrator sees the list of pending requests, checks whether each club or project team is legitimate, and approves it or rejects it with a reason. Only approved clubs and project teams are visible on the platform. The Platform Administrator can also change the Captain of a club or project team when needed (for example, when the Captain graduates or leaves); the new Captain must already be a member, and the previous Captain becomes a regular Member. Platform Administrator accounts are created by the team, not through sign-up, and these screens exist only in the web application. | D-02, D-05, D-06 |
+| T-08 | Roles and permissions | All features require a logged-in, verified account, so "public" means visible to every logged-in user. Each club or project team has four roles. A Student (non-member) sees public content; a Member also sees member-only events; a Manager can also manage events, posts, comments on the club's or team's posts, the profile page, and membership requests, and can remove Members; the Captain can also make a Member a Manager or return a Manager to Member, remove Managers from the club or team, and hand over the Captain role to another member, after which the previous Captain becomes a regular Member. The backend checks these rights on every request. | D-01, D-02, D-05, D-06, D-07 |
+| T-09 | Club / project team profile page | Each approved club or project team has a public profile page (description, logo, contact info) that its Captain and Managers can edit. | D-02, D-05, D-06, D-07 |
+| T-10 | Membership management | A student sends a membership request to a club or project team; its Captain or a Manager approves or rejects it; the Captain or a Manager can also remove a Member from the club or team, and only the Captain can remove a Manager; members can leave, but a Captain must hand over the Captain role first; the member list is shown on the profile page. | D-02, D-05, D-06, D-07 |
+| T-11 | Follow / unfollow | A user follows or unfollows a club or project team to see its posts in their home feed and its public events in their calendar without becoming a member. | D-02, D-05, D-06, D-07 |
+| T-12 | Event management | Captains and Managers create, edit, and delete events of different types (social event, lecture/talk, meeting, workshop) with date, time, location, and public or member-only visibility. | D-03, D-05, D-06, D-07 |
+| T-13 | RSVP | A user responds to an event as going or not going (only members can respond to member-only events). The event page shows who is going and who is not going; for a public event these lists are visible to every logged-in user, and for a member-only event to the members, Managers, and Captain of the club or project team. The platform does not take attendance or record who actually came. | D-03, D-05, D-06, D-07 |
+| T-14 | Personal calendar | A user sees a calendar of upcoming events from the clubs and project teams they joined or follow, with the events they are going to highlighted. | D-03, D-06, D-07 |
+| T-15 | Posts with media | Captains and Managers publish posts on behalf of their club or project team with text, photos, and videos (uploaded directly from the app to Cloudinary), and can edit or delete them. | D-04, D-05, D-06, D-07 |
+| T-16 | Likes and comments | Logged-in users like and unlike posts, and add and delete their own comments; the Captain and Managers can also delete comments on their club's or team's posts. | D-04, D-05, D-06, D-07 |
+| T-17 | Feeds | Each club and project team has its own feed, and each user has a personal home feed built from the clubs and project teams they joined or follow; feeds show the newest posts first and load page by page. | D-04, D-06, D-07 |
+| T-18 | Discover and search | Users browse clubs, project teams, upcoming public events, and popular posts (ranked by likes); search clubs and project teams by name and events by title; and filter clubs and project teams by category and events by type. | D-04, D-06, D-07 |
+| T-19 | Testing | Write and run automated backend tests and manual test cases for the web and mobile applications, and create the dummy-data seed script used for testing and the demo. | D-05, D-08 |
+| T-20 | Deployment and release | Deploy the backend and the web application to Vercel, produce the mobile build, and publish release `v1.0.0` on `main`. | D-09 |
+| T-21 | Documentation | Write the README, the API documentation, and the course reports. | D-10 |
 
-T-03–T-18 are the functional requirements; T-01, T-02, and T-19–T-21 are supporting tasks needed to design, build, test, deploy, and document the system. D-02 is listed only for tasks that add tables or fields to the database; tasks that only read existing data (T-14, T-17, T-18) use it through D-01.
+T-03–T-18 are the functional requirements; T-01, T-02, and T-19–T-21 are supporting tasks needed to design, build, test, deploy, and document the system. D-05 is listed only for tasks that add tables or fields to the database; tasks that only read existing data (T-14, T-17, T-18) use it through the backend API. The backend API is split into four deliverables by feature area (D-01–D-04), and each of them is covered by at least one functional task.
 
 ### 1.4 Non-functional Issues
 
@@ -148,8 +151,8 @@ Decompose the tasks in Section 1.3 into smaller **subtasks / activities**. Give 
 | WBS-11.2 | T-11 | Follow / unfollow web and mobile UI | Add follow/unfollow toggle buttons and state indicators to club/team pages on web and mobile; completed when toggling updates the user's feed and calendar sources. | T |
 | WBS-12.1 | T-12 | Event management API | Implement CRUD endpoints for Captains and Managers to publish, edit, and delete events (social, lecture/talk, meeting, workshop) with date, time, location, and public/member-only visibility; completed when non-members cannot fetch member-only events. | S |
 | WBS-12.2 | T-12 | Event management web and mobile screens | Build event creation/editing forms for Captains/Managers and event detail pages on web and mobile; completed when events can be created, edited, viewed, and deleted on both platforms. | M |
-| WBS-13.1 | T-13 | RSVP and attendance API | Implement endpoints to submit/update going or not-going responses (enforcing member checks on member-only events) and list attendees for Captains/Managers; completed when duplicate RSVPs are prevented by database constraints. | T |
-| WBS-13.2 | T-13 | RSVP and attendee list web and mobile screens | Build RSVP toggle controls for users and the attendee list view for Captains/Managers on web and mobile; completed when RSVP changes immediately update attendance counts and lists. | S |
+| WBS-13.1 | T-13 | RSVP API | Implement endpoints to submit/update going or not-going responses (enforcing member checks on member-only events) and return the RSVP lists (going / not going) to the users who can see the event; completed when duplicate RSVPs are prevented by database constraints. | T |
+| WBS-13.2 | T-13 | RSVP and RSVP list web and mobile screens | Build RSVP toggle controls for users and the RSVP lists (going / not going) on the event page on web and mobile; completed when RSVP changes immediately update the going / not-going counts and RSVP lists. | S |
 | WBS-14.1 | T-14 | Personal calendar API | Implement an endpoint aggregating upcoming events from clubs and teams the user joined or follows, including the user's RSVP status; completed when only authorized upcoming events are returned in chronological order. | T |
 | WBS-14.2 | T-14 | Personal calendar web and mobile screens | Build the personal calendar view on web and mobile with visual highlights for events marked as "going"; completed when users can browse their upcoming schedule and open event details. | M |
 | WBS-15.1 | T-15 | Posts and media API | Implement CRUD endpoints for Captains and Managers to publish, edit, and delete posts with text and signed Cloudinary photo/video uploads; completed when media metadata and post records are validated and stored. | M |
@@ -166,8 +169,8 @@ Decompose the tasks in Section 1.3 into smaller **subtasks / activities**. Give 
 | WBS-20.1 | T-20 | Backend and web production deployment | Deploy the Flask REST API and Next.js web app to Vercel connected to Aiven MySQL, Cloudinary, and Gmail SMTP, and verify `/api/health/db` recovery after idle periods; completed when both production URLs are live and stable. | S |
 | WBS-20.2 | T-20 | Mobile build, end-to-end verification, and `v1.0.0` release | Produce the final Expo mobile build, run an end-to-end demo rehearsal across web and mobile, and tag release `v1.0.0` on `main` by 25.12.2026; completed when `v1.0.0` is published and ready for the demo. | S |
 | WBS-21.1 | T-21 | Project Charter and Project Plan reports | Draft, review via pull request, and submit the Project Charter and Project Plan in `docs/` with their respective GitHub releases; completed when both reports are merged by their deadlines. | M |
-| WBS-21.2 | T-21 | Requirement Specification and Requirement Analysis reports | Gather detailed requirements, write user stories and analysis models, and submit the Requirement Specification (02.11.2026) and Requirement Analysis (23.11.2026) reports in `docs/`; completed when both reports are reviewed and released. | XL |
-| WBS-21.3 | T-21 | Software Design and Software Test reports | Document architecture, database schema, and component designs for the Software Design Report (07.12.2026), and compile test results for the Software Test Report (21.12.2026); completed when both reports are reviewed and released. | XL |
+| WBS-21.2 | T-21 | Requirement Specification and Requirement Analysis reports | Gather detailed requirements, write user stories and analysis models, and submit the Requirement Specification (08.11.2026) and Requirement Analysis (29.11.2026) reports in `docs/`; completed when both reports are reviewed and released. | XL |
+| WBS-21.3 | T-21 | Software Design and Software Test reports | Document architecture, database schema, and component designs for the Software Design Report (13.12.2026), and compile test results for the Software Test Report (24.12.2026); completed when both reports are reviewed and released. | XL |
 | WBS-21.4 | T-21 | Repository README and API documentation | Write the repository `README.md` (project overview, team roles, local setup and run guide) and complete `/api` endpoint documentation; completed when a new developer can set up and run the system using only the README. | S |
 
 **WBS decomposition notes:**  
@@ -208,8 +211,8 @@ Estimate effort for **each WBS activity** in **man-weeks (person-weeks)**. Keep 
 | WBS-11.2 | T | 0.25 | Follow/unfollow button state integration on web and mobile profile headers. |
 | WBS-12.1 | S | 0.50 | Event CRUD endpoints with event type enum and public vs. member-only visibility filtering. |
 | WBS-12.2 | M | 0.75 | Event creation/edit forms (with date/time pickers) and event detail views on web and mobile. |
-| WBS-13.1 | T | 0.25 | RSVP upsert endpoint with member-only access check and attendee list query. |
-| WBS-13.2 | S | 0.50 | RSVP buttons and Captain/Manager attendee list view on web and mobile. |
+| WBS-13.1 | T | 0.25 | RSVP upsert endpoint with member-only access check and RSVP list (going / not going) query. |
+| WBS-13.2 | S | 0.50 | RSVP buttons and RSVP lists (going / not going) on the event page on web and mobile. |
 | WBS-14.1 | T | 0.25 | Read-only query joining events from joined/followed clubs with the user's RSVPs. |
 | WBS-14.2 | M | 0.75 | Interactive calendar component and highlighted "going" events on both web and mobile. |
 | WBS-15.1 | M | 0.75 | Post CRUD endpoints supporting multiple photo/video URLs and signed direct-to-Cloudinary upload validation. |
@@ -290,14 +293,14 @@ The team (Al-ı Memnu) has four members. All members are full-stack developers a
 | WBS-6.2 | Melih Kart | Builds the mobile screens | 0.25 |
 | WBS-6.2 | Eslem Azra Yılmaz | Builds the web screens | 0.25 |
 | WBS-7.1 | Yusuf Erdem Cıdık | Implements the Admin approval & captain change endpoints and their API checks | 0.5 |
-| WBS-7.2 | Eslem Azra Yılmaz | Builds the web-only administrator dashboard | 0.15 (week of 16 Nov), 0.35 (week of 23 Nov) |
+| WBS-7.2 | Eslem Azra Yılmaz | Builds the web-only administrator dashboard | 0.25 |
 | WBS-8.1 | Beyza Arısan | Implements the main endpoints and database changes | 0.6 |
 | WBS-8.1 | Yusuf Erdem Cıdık | Implements part of the endpoints and their API tests | 0.15 |
 | WBS-8.2 | Melih Kart | Builds the mobile screens | 0.4 |
 | WBS-8.2 | Eslem Azra Yılmaz | Builds the web screens | 0.35 |
 | WBS-9.1 | Beyza Arısan | Implements the Club/team profile endpoints and their API checks | 0.25 |
-| WBS-9.2 | Melih Kart | Builds the mobile screens | 0.3 |
-| WBS-9.2 | Eslem Azra Yılmaz | Builds the web screens | 0.2 |
+| WBS-9.2 | Melih Kart | Builds the mobile screens | 0.35 |
+| WBS-9.2 | Eslem Azra Yılmaz | Builds the web screens | 0.15 |
 | WBS-10.1 | Beyza Arısan | Implements the main endpoints and database changes | 0.5 |
 | WBS-10.1 | Yusuf Erdem Cıdık | Implements part of the endpoints and their API tests | 0.25 |
 | WBS-10.2 | Melih Kart | Builds the mobile screens | 0.4 |
@@ -309,16 +312,16 @@ The team (Al-ı Memnu) has four members. All members are full-stack developers a
 | WBS-12.1 | Yusuf Erdem Cıdık | Implements part of the endpoints and their API tests | 0.1 |
 | WBS-12.2 | Melih Kart | Builds the mobile screens | 0.4 |
 | WBS-12.2 | Eslem Azra Yılmaz | Builds the web screens | 0.35 |
-| WBS-13.1 | Beyza Arısan | Implements the RSVP & attendance endpoints and their API checks | 0.25 |
+| WBS-13.1 | Beyza Arısan | Implements the RSVP endpoints and their API checks | 0.25 |
 | WBS-13.2 | Melih Kart | Builds the mobile screens | 0.25 |
 | WBS-13.2 | Eslem Azra Yılmaz | Builds the web screens | 0.25 |
 | WBS-14.1 | Beyza Arısan | Implements the Personal calendar endpoints and their API checks | 0.25 |
 | WBS-14.2 | Melih Kart | Builds the mobile screens | 0.4 |
 | WBS-14.2 | Eslem Azra Yılmaz | Builds the web screens | 0.35 |
-| WBS-15.1 | Beyza Arısan | Implements the main endpoints and database changes | 0.6 |
-| WBS-15.1 | Yusuf Erdem Cıdık | Implements part of the endpoints and their API tests | 0.15 |
-| WBS-15.2 | Melih Kart | Builds the mobile screens | 0.3 |
-| WBS-15.2 | Eslem Azra Yılmaz | Builds the web screens | 0.2 |
+| WBS-15.1 | Beyza Arısan | Implements the main endpoints and database changes | 0.55 |
+| WBS-15.1 | Yusuf Erdem Cıdık | Implements part of the endpoints and their API tests | 0.2 |
+| WBS-15.2 | Melih Kart | Builds the mobile screens | 0.35 (week of 23 Nov), 0.2 (week of 30 Nov) |
+| WBS-15.2 | Eslem Azra Yılmaz | Builds the web screens | 0.25 (week of 23 Nov), 0.2 (week of 30 Nov) |
 | WBS-16.1 | Yusuf Erdem Cıdık | Implements the Likes & comments endpoints and their API checks | 0.5 |
 | WBS-16.2 | Melih Kart | Builds the mobile screens | 0.25 |
 | WBS-16.2 | Eslem Azra Yılmaz | Builds the web screens | 0.25 |
@@ -328,13 +331,12 @@ The team (Al-ı Memnu) has four members. All members are full-stack developers a
 | WBS-18.1 | Beyza Arısan | Implements the main endpoints and database changes | 0.25 |
 | WBS-18.1 | Yusuf Erdem Cıdık | Implements part of the endpoints and their API tests | 0.25 |
 | WBS-18.2 | Melih Kart | Builds the mobile Discover screen | 0.1 |
-| WBS-18.2 | Beyza Arısan | Builds the Discover web tabs and filter controls | 0.3 |
+| WBS-18.2 | Beyza Arısan | Builds the Discover web tabs and filter controls | 0.2 |
 | WBS-18.2 | Eslem Azra Yılmaz | Builds the web search bar and connects the web screens to the API | 0.2 |
-| WBS-18.2 | Yusuf Erdem Cıdık | Builds the mobile filter controls | 0.15 |
-| WBS-19.1 | Beyza Arısan | Writes the repeatable seed script | 0.2 |
-| WBS-19.1 | Yusuf Erdem Cıdık | Prepares realistic demo data (clubs, users, events, posts) | 0.3 |
-| WBS-19.2 | Beyza Arısan | Reviews the tests and fixes failing endpoints | 0.1 |
-| WBS-19.2 | Yusuf Erdem Cıdık | Writes the pytest unit and API tests, including `401`/`403` and constraint cases | 0.4 |
+| WBS-18.2 | Yusuf Erdem Cıdık | Builds the mobile filter controls | 0.25 |
+| WBS-19.1 | Yusuf Erdem Cıdık | Writes the repeatable seed script and prepares realistic demo data (clubs, users, events, posts) | 0.5 |
+| WBS-19.2 | Beyza Arısan | Writes API tests for the endpoints they built and fixes failing endpoints | 0.4 |
+| WBS-19.2 | Yusuf Erdem Cıdık | Writes the pytest unit and API tests, including `401`/`403` and constraint cases | 0.6 |
 | WBS-19.3 | Melih Kart | Runs Android and iOS tests through Expo Go | 0.25 |
 | WBS-19.3 | Eslem Azra Yılmaz | Runs browser tests (Chrome, Firefox, Safari, Edge) and the usability walkthroughs | 0.25 |
 | WBS-19.3 | Yusuf Erdem Cıdık | Logs all findings and response-time checks for the Software Test Report | 0.25 |
@@ -360,11 +362,12 @@ The team (Al-ı Memnu) has four members. All members are full-stack developers a
 
 **Availability or allocation constraints:**
 - **Part-time work.** All members are students taking other courses, so each member's total allocation in any week is limited to **1.0** (their full weekly project time). The allocations above were added up week by week: no member goes above 1.0 in any week, and the average load over the 12 weeks is about 0.57 per member, which matches Section 3.
-- **Busiest weeks.** The weeks of 9 November to 13 December carry the most parallel feature work; members' loads in these weeks are between 0.4 and 1.0. To keep the Backend Lead within capacity, the backend of T-06, T-07, T-11, and T-16 is assigned to the QA Lead, and the Backend Lead and the QA Lead help with the Discover screens (WBS-18.2) in the week of 7 December.
+- **Re-planning (version 1.1).** Work on the first feature API (WBS-3.1) started in the week of 2 November instead of the week of 19 October, so all activities from that week on were re-planned and the allocations above were updated. To keep the code freeze, most screens are built in the same week as their API (Section 5.1), and members work across layers where needed.
+- **Busiest weeks.** The weeks of 9 November to 13 December (including the free week of 16 November) carry the most parallel feature work; members' loads in these weeks are between 0.65 and 1.0 (at most 0.75 in the free week). To keep the Backend Lead within capacity, the backend of T-06, T-07, T-11, and T-16 is assigned to the QA Lead, and the Backend Lead and the QA Lead help with the Discover screens (WBS-18.2) in the week of 7 December.
 - **Lighter weeks.** The first weeks (setup) and the last two weeks (testing and release) have lower loads. This leaves room for report work and for fixing problems found in testing before the code freeze.
 - **Report deadlines.** Report work (WBS-21.x) is spread over the weeks before each deadline and is included in the weekly totals; each report's lead gets the largest share.
 - **Exams and other commitments.** Midterm periods and assignments of other courses can lower availability in some weeks. In those weeks, non-critical activities are moved within their slack (Section 5.2), and members help each other across layers when a critical activity is at risk.
-- **Holidays.** 29 October (Republic Day) falls in the week of WBS-3.2 and WBS-4.1; the lost day is covered by the members' remaining capacity in that week.
+- **Holidays and free week.** 29 October (Republic Day) fell in the week of 26 October, before the re-planned weeks. The week of 16 November is the free week with no classes: members plan at most 0.75 of their weekly project time for it, report work pauses that week, and it is used for feature work.
 - **Free-plan and device limits.** Hardware and software resources are limited to free plans (Aiven, Vercel Hobby, Cloudinary, Gmail SMTP, Expo Go), as stated in Section 1.1. iOS testing depends on members' access to an iPhone.
 
 ---
@@ -373,260 +376,307 @@ The team (Al-ı Memnu) has four members. All members are full-stack developers a
 
 ### 5.1 PERT Chart — Activity Sequence
 
-Nodes are the WBS activities from Section 2 with their durations in weeks; arrows show that an activity cannot start before its predecessor is finished. The **main critical path** is shown in dark red; other activities with zero slack are shown in light red. The documentation activities (WBS-21.x) follow fixed course deadlines and are shown in the Gantt chart (Section 5.3).
+Nodes are the WBS activities from Section 2 with their durations in weeks, placed in columns by week (the week of 16 November is the free week, with no classes). Solid arrows are finish-to-start dependencies: an activity cannot start before its predecessor is finished. Dotted arrows mean that the two activities may run in the same week: an API and its screens, or a second API that only needs the shared helpers the first one builds at the start of the week. The **critical path** is shown in dark red, and other activities with no float left in the planned schedule are shown in light red. The documentation activities (WBS-21.x) follow fixed course deadlines and are shown in the Gantt chart (Section 5.3) and the weekly work plan (Section 5.4).
 
 ```mermaid
 flowchart LR
+    subgraph K1["Week of 05 Oct"]
+        direction TB
+        N1_1["WBS-1.1<br/>Repository and external services setup<br/>1 w"]
+    end
+    subgraph K2["Week of 12 Oct"]
+        direction TB
+        N1_2["WBS-1.2<br/>Backend skeleton and DB schema migration<br/>1 w"]
+    end
+    subgraph K3["Week of 19 Oct"]
+        direction TB
+        N1_3["WBS-1.3<br/>Web and mobile app skeletons<br/>1 w"]
+        N2_1["WBS-2.1<br/>Shared design system and navigation<br/>1 w"]
+    end
+    subgraph K4["Week of 26 Oct"]
+        direction TB
+        N2_2["WBS-2.2<br/>Screen wireframes<br/>1 w"]
+    end
+    subgraph K5["Week of 02 Nov"]
+        direction TB
+        N3_1["WBS-3.1<br/>Sign-up & verification API<br/>1 w"]
+        N3_2["WBS-3.2<br/>Sign-up & verification screens<br/>1 w"]
+        N19_1["WBS-19.1<br/>Dummy-data seed script<br/>1 w"]
+        N20_1["WBS-20.1<br/>Backend & web production deployment<br/>1 w"]
+    end
+    subgraph K6["Week of 09 Nov"]
+        direction TB
+        N4_1["WBS-4.1<br/>Login & password-reset API<br/>1 w"]
+        N4_2["WBS-4.2<br/>Login & password-reset screens<br/>1 w"]
+        N6_1["WBS-6.1<br/>Club/team request API<br/>1 w"]
+        N6_2["WBS-6.2<br/>Club/team request screens<br/>1 w"]
+        N8_1["WBS-8.1<br/>RBAC & role management API<br/>1 w"]
+        N8_2["WBS-8.2<br/>Role-aware UI & role management screens<br/>1 w"]
+        N9_1["WBS-9.1<br/>Club/team profile API<br/>1 w"]
+    end
+    subgraph K7["Week of 16 Nov · free week"]
+        direction TB
+        N5_1["WBS-5.1<br/>User profile API<br/>1 w"]
+        N7_1["WBS-7.1<br/>Admin approval & captain change API<br/>1 w"]
+        N7_2["WBS-7.2<br/>Admin web screens<br/>2 w"]
+        N9_2["WBS-9.2<br/>Club/team profile screens<br/>1 w"]
+        N10_1["WBS-10.1<br/>Membership management API<br/>1 w"]
+        N10_2["WBS-10.2<br/>Membership management screens<br/>1 w"]
+    end
+    subgraph K8["Week of 23 Nov"]
+        direction TB
+        N11_1["WBS-11.1<br/>Follow / unfollow API<br/>1 w"]
+        N11_2["WBS-11.2<br/>Follow / unfollow UI<br/>1 w"]
+        N12_1["WBS-12.1<br/>Event management API<br/>1 w"]
+        N12_2["WBS-12.2<br/>Event management screens<br/>1 w"]
+        N15_1["WBS-15.1<br/>Posts & media API<br/>1 w"]
+        N15_2["WBS-15.2<br/>Post composer & media display<br/>2 w"]
+    end
+    subgraph K9["Week of 30 Nov"]
+        direction TB
+        N5_2["WBS-5.2<br/>User profile screens<br/>1 w"]
+        N13_1["WBS-13.1<br/>RSVP API<br/>1 w"]
+        N13_2["WBS-13.2<br/>RSVP & RSVP list screens<br/>1 w"]
+        N16_1["WBS-16.1<br/>Likes & comments API<br/>1 w"]
+        N16_2["WBS-16.2<br/>Likes & comments UI<br/>1 w"]
+        N17_1["WBS-17.1<br/>Feeds API<br/>1 w"]
+    end
+    subgraph K10["Week of 07 Dec"]
+        direction TB
+        N14_1["WBS-14.1<br/>Personal calendar API<br/>1 w"]
+        N14_2["WBS-14.2<br/>Personal calendar screens<br/>1 w"]
+        N17_2["WBS-17.2<br/>Feed screens & pagination<br/>1 w"]
+        N18_1["WBS-18.1<br/>Discover, search & filtering API<br/>1 w"]
+        N18_2["WBS-18.2<br/>Discover & search screens<br/>1 w"]
+    end
+    subgraph K11["Week of 14 Dec"]
+        direction TB
+        N19_2["WBS-19.2<br/>Automated backend test suite<br/>1 w"]
+        N19_3["WBS-19.3<br/>Manual testing & usability walkthroughs<br/>1 w"]
+    end
+    subgraph K12["Week of 21 Dec"]
+        direction TB
+        N20_2["WBS-20.2<br/>Mobile build, E2E check & v1.0.0 release<br/>1 w"]
+    end
     START((Start<br/>05 Oct))
-    N1_1["WBS-1.1<br/>Repository and external services setup<br/>1 w"]
-    N1_2["WBS-1.2<br/>Backend skeleton and DB schema migration<br/>1 w"]
-    N1_3["WBS-1.3<br/>Web and mobile app skeletons<br/>1 w"]
-    N2_1["WBS-2.1<br/>Shared design system and navigation<br/>1 w"]
-    N2_2["WBS-2.2<br/>Screen wireframes<br/>1 w"]
-    N3_1["WBS-3.1<br/>Sign-up & verification API<br/>1 w"]
-    N3_2["WBS-3.2<br/>Sign-up & verification screens<br/>1 w"]
-    N4_1["WBS-4.1<br/>Login & password-reset API<br/>1 w"]
-    N4_2["WBS-4.2<br/>Login & password-reset screens<br/>1 w"]
-    N5_1["WBS-5.1<br/>User profile API<br/>1 w"]
-    N5_2["WBS-5.2<br/>User profile screens<br/>1 w"]
-    N6_1["WBS-6.1<br/>Club/team request API<br/>1 w"]
-    N6_2["WBS-6.2<br/>Club/team request screens<br/>1 w"]
-    N7_1["WBS-7.1<br/>Admin approval & captain change API<br/>1 w"]
-    N7_2["WBS-7.2<br/>Admin web screens<br/>2 w"]
-    N8_1["WBS-8.1<br/>RBAC & role management API<br/>1 w"]
-    N8_2["WBS-8.2<br/>Role-aware UI & role management screens<br/>1 w"]
-    N9_1["WBS-9.1<br/>Club/team profile API<br/>1 w"]
-    N9_2["WBS-9.2<br/>Club/team profile screens<br/>1 w"]
-    N10_1["WBS-10.1<br/>Membership management API<br/>1 w"]
-    N10_2["WBS-10.2<br/>Membership management screens<br/>1 w"]
-    N11_1["WBS-11.1<br/>Follow / unfollow API<br/>1 w"]
-    N11_2["WBS-11.2<br/>Follow / unfollow UI<br/>1 w"]
-    N12_1["WBS-12.1<br/>Event management API<br/>1 w"]
-    N12_2["WBS-12.2<br/>Event management screens<br/>1 w"]
-    N13_1["WBS-13.1<br/>RSVP & attendance API<br/>1 w"]
-    N13_2["WBS-13.2<br/>RSVP & attendee list screens<br/>1 w"]
-    N14_1["WBS-14.1<br/>Personal calendar API<br/>1 w"]
-    N14_2["WBS-14.2<br/>Personal calendar screens<br/>1 w"]
-    N15_1["WBS-15.1<br/>Posts & media API<br/>1 w"]
-    N15_2["WBS-15.2<br/>Post composer & media display<br/>2 w"]
-    N16_1["WBS-16.1<br/>Likes & comments API<br/>1 w"]
-    N16_2["WBS-16.2<br/>Likes & comments UI<br/>1 w"]
-    N17_1["WBS-17.1<br/>Feeds API<br/>1 w"]
-    N17_2["WBS-17.2<br/>Feed screens & pagination<br/>1 w"]
-    N18_1["WBS-18.1<br/>Discover, search & filtering API<br/>1 w"]
-    N18_2["WBS-18.2<br/>Discover & search screens<br/>1 w"]
-    N19_1["WBS-19.1<br/>Dummy-data seed script<br/>1 w"]
-    N19_2["WBS-19.2<br/>Automated backend test suite<br/>2 w"]
-    N19_3["WBS-19.3<br/>Manual testing & usability walkthroughs<br/>1 w"]
-    N20_1["WBS-20.1<br/>Backend & web production deployment<br/>1 w"]
-    N20_2["WBS-20.2<br/>Mobile build, E2E check & v1.0.0 release<br/>1 w"]
+    FINISH((Code freeze<br/>25 Dec))
     START --> N1_1
     N1_1 --> N1_2
     N1_1 --> N1_3
     N1_1 --> N2_1
     N2_1 --> N2_2
     N1_2 --> N3_1
-    N3_1 --> N3_2
     N1_3 --> N3_2
     N2_2 --> N3_2
     N3_1 --> N4_1
-    N4_1 --> N4_2
-    N3_2 --> N4_2
-    N4_1 --> N5_1
-    N5_1 --> N5_2
-    N4_2 --> N5_2
-    N4_1 --> N6_1
-    N6_1 --> N6_2
-    N4_2 --> N6_2
     N6_1 --> N7_1
     N8_1 --> N7_1
-    N7_1 --> N7_2
-    N6_2 --> N7_2
-    N8_2 --> N7_2
-    N4_1 --> N8_1
-    N8_1 --> N8_2
-    N4_2 --> N8_2
-    N8_1 --> N9_1
-    N9_1 --> N9_2
-    N8_2 --> N9_2
+    N3_1 --> N8_1
     N9_1 --> N10_1
-    N10_1 --> N10_2
-    N9_2 --> N10_2
     N9_1 --> N11_1
-    N11_1 --> N11_2
-    N9_2 --> N11_2
     N9_1 --> N12_1
-    N12_1 --> N12_2
-    N9_2 --> N12_2
-    N12_1 --> N13_1
-    N13_1 --> N13_2
-    N12_2 --> N13_2
+    N9_1 --> N13_1
     N13_1 --> N14_1
     N11_1 --> N14_1
-    N14_1 --> N14_2
-    N13_2 --> N14_2
-    N11_2 --> N14_2
-    N8_1 --> N15_1
-    N15_1 --> N15_2
-    N8_2 --> N15_2
     N15_1 --> N16_1
-    N16_1 --> N16_2
-    N15_2 --> N16_2
     N10_1 --> N17_1
     N11_1 --> N17_1
     N15_1 --> N17_1
-    N17_1 --> N17_2
-    N16_2 --> N17_2
-    N10_2 --> N17_2
-    N11_2 --> N17_2
     N12_1 --> N18_1
     N16_1 --> N18_1
-    N18_1 --> N18_2
-    N16_2 --> N18_2
-    N12_2 --> N18_2
     N1_2 --> N19_1
+    N5_1 --> N19_2
+    N7_1 --> N19_2
     N14_1 --> N19_2
     N17_1 --> N19_2
     N18_1 --> N19_2
-    N5_1 --> N19_2
-    N7_1 --> N19_2
     N19_1 --> N19_2
-    N14_2 --> N19_3
-    N17_2 --> N19_3
-    N18_2 --> N19_3
     N5_2 --> N19_3
     N7_2 --> N19_3
+    N14_2 --> N19_3
+    N16_2 --> N19_3
+    N17_2 --> N19_3
+    N18_2 --> N19_3
     N20_1 --> N19_3
     N1_2 --> N20_1
     N1_3 --> N20_1
     N19_2 --> N20_2
     N19_3 --> N20_2
-    N20_2 --> FINISH((Code freeze<br/>25 Dec))
+    N3_1 -.-> N3_2
+    N4_1 -.-> N4_2
+    N4_1 -.-> N5_1
+    N5_1 -.-> N5_2
+    N4_1 -.-> N6_1
+    N6_1 -.-> N6_2
+    N7_1 -.-> N7_2
+    N4_1 -.-> N8_1
+    N8_1 -.-> N8_2
+    N8_1 -.-> N9_1
+    N9_1 -.-> N9_2
+    N10_1 -.-> N10_2
+    N11_1 -.-> N11_2
+    N12_1 -.-> N12_2
+    N12_1 -.-> N13_1
+    N13_1 -.-> N13_2
+    N14_1 -.-> N14_2
+    N8_1 -.-> N15_1
+    N15_1 -.-> N15_2
+    N16_1 -.-> N16_2
+    N17_1 -.-> N17_2
+    N18_1 -.-> N18_2
+    N20_2 --> FINISH
     classDef critical fill:#ffe1e1,stroke:#d33,stroke-width:3px,color:#111;
     classDef main fill:#ffb3b3,stroke:#a00,stroke-width:4px,color:#111;
-    class N2_1,N2_2,N4_1,N8_1,N9_1,N12_1,N13_1,N14_1,N15_1,N15_2,N16_2,N17_2,N18_2,N19_2 critical;
-    class N1_1,N1_2,N3_1,N3_2,N4_2,N8_2,N9_2,N12_2,N13_2,N14_2,N19_3,N20_2 main;
+    class N13_1,N14_1,N14_2,N17_2,N19_2 critical;
+    class N3_1,N8_1,N15_1,N16_1,N18_1,N18_2,N19_3,N20_2 main;
 ```
 
 **PERT notes (activity durations and dependencies):**
-- **Durations.** Each activity's duration comes from its effort in Section 3 and the members assigned to it in Section 4.2 (duration = effort ÷ total allocation). Most activities take 1 week; the admin screens (WBS-7.2), the post composer (WBS-15.2), and the automated test suite (WBS-19.2) take 2 weeks.
-- **Setup first.** Everything starts from WBS-1.1. The backend skeleton (WBS-1.2), the web and mobile skeletons (WBS-1.3), and the design system (WBS-2.1) run in parallel in the second week. The health-check endpoint is the first part of WBS-1.2, so WBS-1.3 can call it in the same week.
-- **Backend first, then clients.** For each feature, the API activity (.1) is finished one week before its web and mobile screens (.2), so the clients are built against working endpoints. While the clients build one feature, the backend already works on the next one; this keeps both groups busy without waiting.
-- **Feature order follows data dependencies.** Sign-up (T-03) comes before login (T-04); every later feature needs a logged-in user. Roles (T-08) come before the club profile page (T-09), posts (T-15), and the admin screens (T-07). Membership (T-10), follow (T-11), and events (T-12) need club profiles. RSVPs (T-13) need events. The calendar (T-14) needs RSVPs and follows; feeds (T-17) need posts, memberships, and follows; Discover (T-18) needs events and likes, because popular posts are ranked by likes.
-- **Early deployment.** WBS-20.1 is done early (week of 26 October) so the team works against the real Vercel and Aiven setup from the start; the apps are then redeployed after each merge.
-- **Testing and release.** The automated test suite (WBS-19.2) starts when all APIs are finished. Manual testing and usability walkthroughs (WBS-19.3) run on the deployed system after all screens are finished, and the release (WBS-20.2) comes last.
+- **Re-planning (version 1.1).** The sign-up and verification API (WBS-3.1) started in the week of 2 November instead of the week of 19 October, so the schedule was re-planned from that week to keep the code freeze on 25 December. The setup and design activities (WBS-1.x, WBS-2.x) took place in the first four weeks.
+- **Durations.** Each activity's duration comes from its effort in Section 3 and the members assigned to it in Section 4.2 (duration = effort ÷ total allocation). Most activities take 1 week; the admin screens (WBS-7.2) and the post composer (WBS-15.2) take 2 weeks.
+- **API and screens in the same week.** To fit the remaining work before the code freeze, most screens are built in the same week as their API (dotted arrows). At the start of the week, the backend and client developers agree on the JSON request and response format of the endpoints; the clients are built against it and connected to the real API once it is merged. In the same way, the profile and club request APIs share a week with the login API, and the club profile and posts APIs share a week with the role checks (WBS-8.1), because they only need the JWT and role-check helpers built first.
+- **Feature order follows data dependencies.** Sign-up (T-03) comes before login (T-04) and the role checks (T-08); every later feature needs a logged-in user. The club profile page (T-09) and posts (T-15) need the role checks. Membership (T-10), follow (T-11), and events (T-12) need club profiles. The calendar (T-14) needs RSVPs and follows; feeds (T-17) need posts, memberships, and follows; Discover (T-18) needs events and likes, because popular posts are ranked by likes.
+- **Free week.** The week of 16 November has no classes. It is used for feature work, with at most 0.75 of each member's weekly project time, and report work pauses that week.
+- **Early deployment.** WBS-20.1 is done in the week of 2 November, so the team works against the real Vercel and Aiven setup from then on; the apps are redeployed after each merge.
+- **Testing and release.** The automated test suite (WBS-19.2) and the manual testing and usability walkthroughs (WBS-19.3) run in the week of 14 December, after all features are finished, so the Software Test Report can be submitted on 24 December. The release (WBS-20.2) comes last.
 
 ### 5.2 Critical Path and Total Project Duration
 
-The critical path is the longest path from start to finish. It was found with a forward pass (earliest start and finish of every activity) and a backward pass (latest start and finish); activities with zero slack are critical.
+The critical path is the longest chain of dependent activities from the re-planning point (the week of 2 November) to the release. It was found with a forward pass (earliest start of every activity) and a backward pass (latest start that still meets the code freeze); the float of an activity is the difference between its latest start and its planned start.
 
 **Critical path (in activity order):**  
-`WBS-1.1 → WBS-1.2 → WBS-3.1 → WBS-3.2 → WBS-4.2 → WBS-8.2 → WBS-9.2 → WBS-12.2 → WBS-13.2 → WBS-14.2 → WBS-19.3 → WBS-20.2`
+`WBS-3.1 → WBS-8.1 → WBS-15.1 → WBS-16.1 → WBS-18.1 → WBS-18.2 → WBS-19.3 → WBS-20.2`
 
-| Critical-path activity ID | Duration (weeks) | Reason it is critical |
-|---|---|---|
-| WBS-1.1 | 1 | First activity; every other activity needs the repository and the external services. |
-| WBS-1.2 | 1 | No API can be built before the Flask skeleton and the database schema exist. |
-| WBS-3.1 | 1 | Sign-up is the first feature API; all user-related features depend on it. |
-| WBS-3.2 | 1 | The sign-up screens are needed before the login screens can complete the account flow. |
-| WBS-4.2 | 1 | Every later screen needs a logged-in user and a stored JWT session. |
-| WBS-8.2 | 1 | Club screens show different actions for each role, so role-aware UI must exist first. |
-| WBS-9.2 | 1 | Membership, follow, and event screens are opened from the club / team profile page. |
-| WBS-12.2 | 1 | RSVP controls are placed on the event detail screens. |
-| WBS-13.2 | 1 | The calendar highlights events the user is going to, so RSVP screens must exist. |
-| WBS-14.2 | 1 | Last feature screens on the longest chain; manual testing needs all screens. |
-| WBS-19.3 | 1 | Manual testing and usability checks must finish before the release. |
-| WBS-20.2 | 1 (21–25 Dec) | The `v1.0.0` release on `main` is the end of the project (code freeze). |
+| Critical-path activity ID | Planned week | Duration (weeks) | Float left in the plan (weeks) | Reason it is critical |
+|---|---|---|---|---|
+| WBS-3.1 | Week of 02 Nov | 1 | 2 | First feature API; every user feature needs an account. |
+| WBS-8.1 | Week of 09 Nov | 1 | 2 | Role checks are needed by the club, event, and post endpoints. |
+| WBS-15.1 | Week of 23 Nov | 1 | 0 | Likes, comments, feeds, and Discover all need posts. |
+| WBS-16.1 | Week of 30 Nov | 1 | 0 | Popular posts in Discover are ranked by likes. |
+| WBS-18.1 | Week of 07 Dec | 1 | 0 | The Discover screens need the search and filter endpoints. |
+| WBS-18.2 | Week of 07 Dec | 1 | 0 | Last feature screens on the longest chain; manual testing needs all screens. |
+| WBS-19.3 | Week of 14 Dec | 1 | 0 | Manual testing and usability checks must finish before the release and the Software Test Report. |
+| WBS-20.2 | 21–25 Dec | 1 | 0 | The `v1.0.0` release on `main` is the end of the project (code freeze). |
 
-**Total project schedule:** **12 weeks**, from **2026-10-05** to **2026-12-25** (code freeze, release `v1.0.0`), followed by the demo on 2026-12-26 and the presentation in the week of 2026-12-28.
+**Total project schedule:** **12 weeks**, from **2026-10-05** to **2026-12-25** (code freeze, release `v1.0.0`), followed by the demo on 2026-12-26 and the presentation in the week of 2026-12-28. After re-planning, the remaining work runs from the week of 2 November to 25 December.
 
 **Critical-path explanation:**  
-The main critical path adds up to 1 × 12 = 12 weeks, which is the length of the project: a one-week delay in any of its activities moves the code freeze by one week. Because most activities take 1 week and the backend and clients work in a pipeline, several parallel chains also have zero slack (for example the backend chain WBS-4.1 → WBS-8.1 → WBS-9.1 → WBS-12.1 → WBS-13.1 → WBS-14.1, and the posts chain WBS-15.1 → WBS-15.2 → WBS-16.2 → WBS-17.2 / WBS-18.2 → WBS-19.3); these are shown in light red and are watched as closely as the main path. Activities off the critical path have slack: the user profile (WBS-5.x) has 4 weeks, the club request and admin activities (WBS-6.x, WBS-7.x) have 2 weeks, membership, follow, likes, feeds, and discover APIs (WBS-10.x, WBS-11.x, WBS-16.1, WBS-17.1, WBS-18.1) have 1 week, the seed script (WBS-19.1) has 6 weeks, and the first deployment (WBS-20.1) has 7 weeks. The schedule is resource-leveled: some non-critical activities (WBS-10.2, WBS-16.1, WBS-18.1, WBS-20.1) start later than their earliest start, but always within their slack.
+If the members' time were unlimited, the remaining chain could finish two weeks earlier, which would leave 2 weeks of float. Because each member can give at most 1.0 of their weekly project time (0.75 in the free week), the schedule is resource-leveled and uses this float to spread the work: the first activities of the critical path still have 2 weeks of float, but from the week of 23 November the path has none, and a one-week delay there moves the code freeze. Several other activities also have no float left and are watched as closely as the critical path (light red): WBS-13.1, WBS-14.1, WBS-14.2, WBS-17.2, WBS-19.2. The remaining activities have float (1 week: WBS-5.2, WBS-11.1, WBS-12.1, WBS-13.2, WBS-16.2, WBS-17.1; 2 weeks: WBS-4.1, WBS-6.1, WBS-7.1, WBS-7.2, WBS-9.1, WBS-10.1, WBS-11.2, WBS-12.2, WBS-15.2; 3 weeks: WBS-4.2, WBS-5.1, WBS-6.2, WBS-8.2, WBS-9.2, WBS-10.2; 4 weeks: WBS-3.2; 5 weeks: WBS-19.1, WBS-20.1).
 
 ### 5.3 Gantt Chart — Project Timeline
 
-Critical activities are marked `crit` (shown in red). Milestones are the report deadlines and the end-of-term dates.
+Activities on the critical path or with no float left are shown in red. Milestones are the report deadlines (at the end of each due week; the Software Test Report is due before the code freeze) and the end-of-term dates. The week of 16 November is the free week.
 
 ```mermaid
 %%{init: {'themeVariables': {'critBkgColor': '#b85c5c', 'critBorderColor': '#7f1d1d'}}}%%
 gantt
-    title Clublibrary — Project Timeline (Fall 2026)
+    title Clublibrary — Project Timeline (Fall 2026, re-planned from the week of 2 November)
     dateFormat YYYY-MM-DD
     axisFormat %d %b
 
     section Setup & Design
-    WBS-1.1 Repository and external services setup :crit, t1_1, 2026-10-05, 7d
-    WBS-1.2 Backend skeleton and DB schema migration :crit, t1_2, 2026-10-12, 7d
-    WBS-1.3 Web and mobile app skeletons :t1_3, 2026-10-12, 7d
-    WBS-2.1 Shared design system and navigation :crit, t2_1, 2026-10-12, 7d
-    WBS-2.2 Screen wireframes :crit, t2_2, 2026-10-19, 7d
-    WBS-20.1 Backend & web production deployment :t20_1, 2026-10-26, 7d
-    WBS-19.1 Dummy-data seed script :t19_1, 2026-10-19, 7d
+    WBS-1.1 Repository and external services setup :t1_1, 2026-10-05, 7d
+    WBS-1.2 Backend skeleton and DB schema migration :t1_2, 2026-10-12, 7d
+    WBS-1.3 Web and mobile app skeletons :t1_3, 2026-10-19, 7d
+    WBS-2.1 Shared design system and navigation :t2_1, 2026-10-19, 7d
+    WBS-2.2 Screen wireframes :t2_2, 2026-10-26, 7d
+    WBS-19.1 Dummy-data seed script :t19_1, 2026-11-02, 7d
+    WBS-20.1 Backend & web production deployment :t20_1, 2026-11-02, 7d
 
-    section Accounts & Roles
-    WBS-3.1 Sign-up & verification API :crit, t3_1, 2026-10-19, 7d
-    WBS-3.2 Sign-up & verification screens :crit, t3_2, 2026-10-26, 7d
-    WBS-4.1 Login & password-reset API :crit, t4_1, 2026-10-26, 7d
-    WBS-4.2 Login & password-reset screens :crit, t4_2, 2026-11-02, 7d
-    WBS-5.1 User profile API :t5_1, 2026-11-02, 7d
-    WBS-5.2 User profile screens :t5_2, 2026-11-09, 7d
-    WBS-6.1 Club/team request API :t6_1, 2026-11-02, 7d
+    section Accounts & Profiles
+    WBS-3.1 Sign-up & verification API :crit, t3_1, 2026-11-02, 7d
+    WBS-3.2 Sign-up & verification screens :t3_2, 2026-11-02, 7d
+    WBS-4.1 Login & password-reset API :t4_1, 2026-11-09, 7d
+    WBS-4.2 Login & password-reset screens :t4_2, 2026-11-09, 7d
+    WBS-5.1 User profile API :t5_1, 2026-11-16, 7d
+    WBS-5.2 User profile screens :t5_2, 2026-11-30, 7d
+
+    section Clubs, Roles & Admin
+    WBS-6.1 Club/team request API :t6_1, 2026-11-09, 7d
     WBS-6.2 Club/team request screens :t6_2, 2026-11-09, 7d
-    WBS-8.1 RBAC & role management API :crit, t8_1, 2026-11-02, 7d
-    WBS-8.2 Role-aware UI & role management screens :crit, t8_2, 2026-11-09, 7d
-    WBS-7.1 Admin approval & captain change API :t7_1, 2026-11-09, 7d
+    WBS-7.1 Admin approval & captain change API :t7_1, 2026-11-16, 7d
     WBS-7.2 Admin web screens :t7_2, 2026-11-16, 14d
-
-    section Clubs & Events
-    WBS-9.1 Club/team profile API :crit, t9_1, 2026-11-09, 7d
-    WBS-9.2 Club/team profile screens :crit, t9_2, 2026-11-16, 7d
+    WBS-8.1 RBAC & role management API :crit, t8_1, 2026-11-09, 7d
+    WBS-8.2 Role-aware UI & role management screens :t8_2, 2026-11-09, 7d
+    WBS-9.1 Club/team profile API :t9_1, 2026-11-09, 7d
+    WBS-9.2 Club/team profile screens :t9_2, 2026-11-16, 7d
     WBS-10.1 Membership management API :t10_1, 2026-11-16, 7d
-    WBS-10.2 Membership management screens :t10_2, 2026-11-30, 7d
-    WBS-11.1 Follow / unfollow API :t11_1, 2026-11-16, 7d
+    WBS-10.2 Membership management screens :t10_2, 2026-11-16, 7d
+    WBS-11.1 Follow / unfollow API :t11_1, 2026-11-23, 7d
     WBS-11.2 Follow / unfollow UI :t11_2, 2026-11-23, 7d
-    WBS-12.1 Event management API :crit, t12_1, 2026-11-16, 7d
-    WBS-12.2 Event management screens :crit, t12_2, 2026-11-23, 7d
-    WBS-13.1 RSVP & attendance API :crit, t13_1, 2026-11-23, 7d
-    WBS-13.2 RSVP & attendee list screens :crit, t13_2, 2026-11-30, 7d
-    WBS-14.1 Personal calendar API :crit, t14_1, 2026-11-30, 7d
+
+    section Events & Calendar
+    WBS-12.1 Event management API :t12_1, 2026-11-23, 7d
+    WBS-12.2 Event management screens :t12_2, 2026-11-23, 7d
+    WBS-13.1 RSVP API :crit, t13_1, 2026-11-30, 7d
+    WBS-13.2 RSVP & RSVP list screens :t13_2, 2026-11-30, 7d
+    WBS-14.1 Personal calendar API :crit, t14_1, 2026-12-07, 7d
     WBS-14.2 Personal calendar screens :crit, t14_2, 2026-12-07, 7d
 
-    section Posts & Discovery
-    WBS-15.1 Posts & media API :crit, t15_1, 2026-11-09, 7d
-    WBS-15.2 Post composer & media display :crit, t15_2, 2026-11-16, 14d
-    WBS-16.1 Likes & comments API :t16_1, 2026-11-23, 7d
-    WBS-16.2 Likes & comments UI :crit, t16_2, 2026-11-30, 7d
-    WBS-17.1 Feeds API :t17_1, 2026-11-23, 7d
+    section Posts, Feeds & Discover
+    WBS-15.1 Posts & media API :crit, t15_1, 2026-11-23, 7d
+    WBS-15.2 Post composer & media display :t15_2, 2026-11-23, 14d
+    WBS-16.1 Likes & comments API :crit, t16_1, 2026-11-30, 7d
+    WBS-16.2 Likes & comments UI :t16_2, 2026-11-30, 7d
+    WBS-17.1 Feeds API :t17_1, 2026-11-30, 7d
     WBS-17.2 Feed screens & pagination :crit, t17_2, 2026-12-07, 7d
-    WBS-18.1 Discover, search & filtering API :t18_1, 2026-11-30, 7d
+    WBS-18.1 Discover, search & filtering API :crit, t18_1, 2026-12-07, 7d
     WBS-18.2 Discover & search screens :crit, t18_2, 2026-12-07, 7d
 
     section Testing & Release
-    WBS-19.2 Automated backend test suite :crit, t19_2, 2026-12-07, 14d
+    WBS-19.2 Automated backend test suite :crit, t19_2, 2026-12-14, 7d
     WBS-19.3 Manual testing & usability walkthroughs :crit, t19_3, 2026-12-14, 7d
     WBS-20.2 Mobile build, E2E check & v1.0.0 release :crit, t20_2, 2026-12-21, 5d
 
     section Documentation
     WBS-21.1 Charter & Plan :t21_1, 2026-10-05, 21d
-    WBS-21.2 Req. Spec & Analysis :t21_2, 2026-10-26, 28d
-    WBS-21.3 Design & Test reports :t21_3, 2026-11-23, 28d
+    WBS-21.2 Req. Spec & Analysis :t21_2, 2026-10-26, 35d
+    WBS-21.3 Design & Test reports :t21_3, 2026-11-30, 25d
     WBS-21.4 README & API docs :t21_4, 2026-12-07, 14d
 
     section Milestones
-    Req. Specification due :milestone, m1, 2026-11-02, 0d
-    Req. Analysis due :milestone, m2, 2026-11-23, 0d
-    Software Design due :milestone, m3, 2026-12-07, 0d
-    Software Test due :milestone, m4, 2026-12-21, 0d
+    Req. Specification due :milestone, m1, 2026-11-08, 0d
+    Req. Analysis due :milestone, m2, 2026-11-29, 0d
+    Software Design due :milestone, m3, 2026-12-13, 0d
+    Software Test due :milestone, m4, 2026-12-24, 0d
     Code freeze v1.0.0 :milestone, m5, 2026-12-25, 0d
     Final demo :milestone, m6, 2026-12-26, 0d
     Final presentation week :milestone, m7, 2026-12-28, 0d
 ```
 
+### 5.4 Weekly Work Plan
+
+Week-by-week order of the work in the PERT chart, in chronological order. Each activity is listed in every week it runs, with the members working on it.
+
+| Week | Dates | Development activities (members) | Report work | Milestones |
+|---|---|---|---|---|
+| **Week of 05 Oct** | 05 Oct – 11 Oct | WBS-1.1 Repository and external services setup (Melih, Beyza) | WBS-21.1 Charter & Plan | Project Charter due |
+| **Week of 12 Oct** | 12 Oct – 18 Oct | WBS-1.2 Backend skeleton and DB schema migration (Beyza, Yusuf) | WBS-21.1 Charter & Plan |  |
+| **Week of 19 Oct** | 19 Oct – 25 Oct | WBS-1.3 Web and mobile app skeletons (Melih, Eslem)<br>WBS-2.1 Shared design system and navigation (Melih, Eslem) | WBS-21.1 Charter & Plan | Project Plan due (25 Oct) |
+| **Week of 26 Oct** | 26 Oct – 01 Nov | WBS-2.2 Screen wireframes (Melih, Eslem, Yusuf) | WBS-21.2 Req. Spec |  |
+| **Week of 02 Nov** | 02 Nov – 08 Nov | WBS-3.1 Sign-up & verification API (Beyza)<br>WBS-3.2 Sign-up & verification screens (Melih, Eslem)<br>WBS-19.1 Dummy-data seed script (Yusuf)<br>WBS-20.1 Backend & web production deployment (Melih, Beyza) | WBS-21.2 Req. Spec | Requirements Spec due (08 Nov) |
+| **Week of 09 Nov** | 09 Nov – 15 Nov | WBS-4.1 Login & password-reset API (Beyza)<br>WBS-4.2 Login & password-reset screens (Melih, Eslem)<br>WBS-6.1 Club/team request API (Yusuf)<br>WBS-6.2 Club/team request screens (Melih, Eslem)<br>WBS-8.1 RBAC & role management API (Beyza, Yusuf)<br>WBS-8.2 Role-aware UI & role management screens (Melih, Eslem)<br>WBS-9.1 Club/team profile API (Beyza) | WBS-21.2 Req. Analysis |  |
+| **Week of 16 Nov**<br>*free week* | 16 Nov – 22 Nov | WBS-5.1 User profile API (Beyza)<br>WBS-7.1 Admin approval & captain change API (Yusuf)<br>WBS-7.2 Admin web screens (Eslem)<br>WBS-9.2 Club/team profile screens (Melih, Eslem)<br>WBS-10.1 Membership management API (Beyza, Yusuf)<br>WBS-10.2 Membership management screens (Melih, Eslem) | — |  |
+| **Week of 23 Nov** | 23 Nov – 29 Nov | WBS-7.2 Admin web screens *(cont.)* (Eslem)<br>WBS-11.1 Follow / unfollow API (Yusuf)<br>WBS-11.2 Follow / unfollow UI (Melih, Eslem)<br>WBS-12.1 Event management API (Beyza, Yusuf)<br>WBS-12.2 Event management screens (Melih, Eslem)<br>WBS-15.1 Posts & media API (Beyza, Yusuf)<br>WBS-15.2 Post composer & media display (Melih, Eslem) | WBS-21.2 Req. Analysis | Requirements Analysis due (29 Nov) |
+| **Week of 30 Nov** | 30 Nov – 06 Dec | WBS-5.2 User profile screens (Melih, Eslem)<br>WBS-13.1 RSVP API (Beyza)<br>WBS-13.2 RSVP & RSVP list screens (Melih, Eslem)<br>WBS-15.2 Post composer & media display *(cont.)* (Melih, Eslem)<br>WBS-16.1 Likes & comments API (Yusuf)<br>WBS-16.2 Likes & comments UI (Melih, Eslem)<br>WBS-17.1 Feeds API (Beyza) | WBS-21.3 Design report |  |
+| **Week of 07 Dec** | 07 Dec – 13 Dec | WBS-14.1 Personal calendar API (Beyza)<br>WBS-14.2 Personal calendar screens (Melih, Eslem)<br>WBS-17.2 Feed screens & pagination (Melih, Eslem)<br>WBS-18.1 Discover, search & filtering API (Beyza, Yusuf)<br>WBS-18.2 Discover & search screens (Melih, Beyza, Eslem, Yusuf) | WBS-21.3 Design report<br>WBS-21.4 README & API docs | Design Spec due (13 Dec) |
+| **Week of 14 Dec** | 14 Dec – 20 Dec | WBS-19.2 Automated backend test suite (Beyza, Yusuf)<br>WBS-19.3 Manual testing & usability walkthroughs (Melih, Eslem, Yusuf) | WBS-21.3 Test report<br>WBS-21.4 README & API docs |  |
+| **Week of 21 Dec** | 21 Dec – 25 Dec | WBS-20.2 Mobile build, E2E check & v1.0.0 release (Melih, Beyza) | WBS-21.3 Test report | Test Spec due (24 Dec) · Code freeze `v1.0.0` (25 Dec) · Demo (26 Dec) |
+
+**Weekly load per member** (share of each member's weekly project time, including report work; at most 1.0, and 0.75 in the free week):
+
+| Member | 05 Oct | 12 Oct | 19 Oct | 26 Oct | 02 Nov | 09 Nov | 16 Nov | 23 Nov | 30 Nov | 07 Dec | 14 Dec | 21 Dec |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Melih Kart | 0.25 | 0.10 | 0.55 | 0.25 | 0.55 | 1.00 | 0.75 | 1.00 | 1.00 | 1.00 | 0.35 | 0.35 |
+| Beyza Arısan | 0.15 | 0.65 | 0.05 | 0.05 | 0.85 | 0.95 | 0.75 | 1.00 | 0.88 | 0.98 | 0.68 | 0.33 |
+| Eslem Azra Yılmaz | 0.05 | 0.05 | 0.60 | 0.60 | 0.40 | 0.85 | 0.75 | 0.95 | 1.00 | 0.90 | 0.50 | 0.00 |
+| Yusuf Erdem Cıdık | 0.05 | 0.20 | 0.05 | 0.30 | 0.65 | 1.00 | 0.75 | 0.70 | 0.65 | 0.65 | 1.00 | 0.15 |
+
 **Schedule consistency check:**
-- **WBS and estimates:** every WBS activity from Section 2 appears in the schedule with the same ID, and its allocations in Section 4.2 multiplied by its duration equal its estimate in Section 3 (total 27.25 man-weeks).
-- **Dependencies:** in the Gantt chart, no activity starts before all of its predecessors in the PERT chart have finished.
-- **Durations:** the PERT chart and the Gantt chart use the same duration for every activity; activities that start later than their earliest start stay within their slack, so the 12-week project length does not change.
-- **Member availability:** adding up the allocations week by week, no member goes above their weekly project time (1.0) in any week.
+- **WBS and estimates:** every WBS activity from Section 2 appears in the schedule with the same ID, and its allocations in Section 4.2 multiplied by its duration equal its estimate in Section 3 (total 27.25 man-weeks, unchanged by the re-planning).
+- **Dependencies:** no activity starts before its finish-to-start predecessors in the PERT chart have finished; activities that share a week are linked with dotted arrows.
+- **Durations:** the PERT chart, the Gantt chart, and the weekly work plan use the same week and duration for every activity.
+- **Member availability:** the weekly load table above shows that no member goes above 1.0 in any week, or above 0.75 in the free week.
 - **Deadlines:** each report activity ends by its course deadline, and the release activity ends on the code-freeze date (25.12.2026).
 
 ---
@@ -647,11 +697,11 @@ Score both **probability** and **impact** on an ascending scale from **1 (lowest
 | R-04 | Direct-to-Cloudinary upload signature errors or Vercel's 4.5 MB serverless request limit breaking photo and video uploads on web or mobile. | 2 | 4 | 8 | WBS-5.1, WBS-5.2, WBS-9.1, WBS-9.2, WBS-15.1, WBS-15.2 |
 | R-05 | AI-generated code introducing subtle logic bugs, regressions, or unindexed SQLAlchemy queries that exceed the 1-second API response target. | 2 | 4 | 8 | WBS-1.2, WBS-17.1, WBS-18.1, WBS-19.2 |
 | R-06 | API contract mismatches or UI/UX drift between the Flask backend, Next.js web app, and React Native (Expo) mobile app during parallel work. | 3 | 3 | 9 | WBS-2.1, WBS-2.2, WBS-8.2, WBS-12.2, WBS-15.2, WBS-17.2 |
-| R-07 | Temporary unavailability of a team member (for example travel or illness) delaying web screens scheduled in the same weeks, such as the admin screens (`WBS-7.2`), which have only 2 weeks of slack. | 3 | 3 | 9 | WBS-5.2, WBS-7.2, WBS-9.2, WBS-15.2 |
+| R-07 | Temporary unavailability of a team member (for example travel or illness) delaying web screens scheduled in the same weeks, such as the admin screens (`WBS-7.2`), which have no float left in the re-planned schedule. | 3 | 3 | 9 | WBS-5.2, WBS-7.2, WBS-9.2, WBS-15.2 |
 | R-08 | Authorization gaps or state-transition bugs in the 4-role club hierarchy (Student, Member, Manager, Captain), Captain handover rules, or Platform Administrator actions. | 3 | 4 | 12 | WBS-7.1, WBS-8.1, WBS-8.2, WBS-10.1, WBS-10.2, WBS-19.2 |
 | R-09 | Aiven free-tier MySQL database powering off after idle periods or dropping connections during testing or the live demo. | 3 | 4 | 12 | WBS-1.2, WBS-19.3, WBS-20.1, WBS-20.2 |
 | R-10 | Changing or newly added customer (TA) requirements (`customer-requests`) during project meetings expanding scope during busy development weeks. | 4 | 3 | 12 | WBS-6.1, WBS-7.1, WBS-10.1, WBS-12.1, WBS-21.2 |
-| R-11 | University midterm exams and heavy coursework in peak weeks (16 Nov – 13 Dec, when member allocations reach 0.85–1.0 FTE) delaying zero-slack activities on the critical path. | 4 | 4 | 16 | WBS-9.2, WBS-12.2, WBS-13.2, WBS-14.2, WBS-15.2, WBS-17.2, WBS-18.2 |
+| R-11 | University midterm exams and heavy coursework in peak weeks (9 Nov – 13 Dec, when member allocations reach 0.65–1.0 FTE) delaying zero-slack activities on the critical path. | 4 | 4 | 16 | WBS-9.2, WBS-12.2, WBS-13.2, WBS-14.2, WBS-15.2, WBS-17.2, WBS-18.2 |
 
 | Impact ↓ / Probability → | 1 (Very low) | 2 (Low)    | 3 (Medium) | 4 (High) | 5 (Very high) |
 |:-------------------------|:-------------|:-----------|:-----------|:---------|:--------------|
@@ -670,11 +720,15 @@ Map **every identified risk** to relevant project activities and record preventi
 | R-01    | WBS-1.1, WBS-3.1, WBS-4.1, WBS-19.2                                 | Keep all credentials in `.env` files excluded via `.gitignore`, provide only placeholder `.env.example` templates, and verify in pull requests and API tests that password hashes and secrets never appear in responses.                                                 | Beyza Arısan       | Immediately revoke and rotate compromised keys (Aiven, Cloudinary, Gmail app password, JWT secret) and purge sensitive commits from the repository.                                                                                     |
 | R-02    | WBS-1.3, WBS-19.3, WBS-20.2                                         | Lock the Expo SDK version in `package.json` from Week 2, avoid platform-specific native modules outside standard Expo Go support, and test mobile screens weekly on both Android and iOS.                                                                                | Melih Kart         | Borrow an iOS device from a classmate for the manual test run (`WBS-19.3`) and demo rehearsal (`WBS-20.2`), or run the iOS build on a macOS simulator while demonstrating physical device usage on Android.                             |
 | R-03    | WBS-1.1, WBS-3.1, WBS-4.1, WBS-19.3                                 | Pre-verify seeded demo accounts in `WBS-19.1` so automated tests and demo flows do not send bulk e-mails, and test `@itu.edu.tr` delivery early during `WBS-3.1`.                                                                                                        | Beyza Arısan       | Switch to a secondary Gmail SMTP account or transactional e-mail service (such as Resend/SendGrid free tier), and allow a Platform Administrator or seed script to mark test accounts verified if university mail delays delivery.      |
-| R-04    | WBS-5.1, WBS-5.2, WBS-9.1, WBS-9.2, WBS-15.1, WBS-15.2              | Upload photos and videos directly from the web and mobile clients to Cloudinary using backend-generated signed parameters so media files never pass through Vercel serverless functions; build a shared upload helper in Week 7 (`WBS-15.2`).                            | Yusuf Erdem Cıdık  | Restrict maximum file sizes on the client before upload (e.g., 5 MB for photos, 20 MB for short videos) and fall back to image compression or photo-only posts if video uploads hit free-tier bandwidth limits.                         |
+| R-04    | WBS-5.1, WBS-5.2, WBS-9.1, WBS-9.2, WBS-15.1, WBS-15.2              | Upload photos and videos directly from the web and mobile clients to Cloudinary using backend-generated signed parameters so media files never pass through Vercel serverless functions; build a shared upload helper in the week of 23 November (`WBS-15.2`).                            | Yusuf Erdem Cıdık  | Restrict maximum file sizes on the client before upload (e.g., 5 MB for photos, 20 MB for short videos) and fall back to image compression or photo-only posts if video uploads hit free-tier bandwidth limits.                         |
 | R-05    | WBS-1.2, WBS-17.1, WBS-18.1, WBS-19.2                               | Require every AI-assisted pull request to be reviewed and tested by a teammate before merge, add database indexes on foreign keys and filter columns in `WBS-1.2`, and enforce pagination (20 items/page) on all feeds and lists.                                        | Yusuf Erdem Cıdık  | Profile slow endpoints with Postman during `WBS-19.3`, rewrite inefficient ORM queries into optimized SQLAlchemy joins, and revert any faulty AI-generated commit via Git.                                                              |
 | R-06    | WBS-2.1, WBS-2.2, WBS-8.2, WBS-12.2, WBS-15.2, WBS-17.2             | Complete each feature’s backend API (`.1`) one week before its client screens (`.2`), agree on JSON request/response schemas before coding, and follow the shared wireframes from `WBS-2.2`.                                                                             | Eslem Azra Yılmaz  | Hold a quick sync between Backend, Web, and Mobile leads to patch payload mismatches immediately, and update shared TypeScript API client types in one pull request.                                                                    |
 | R-07 | WBS-5.2, WBS-7.2, WBS-9.2, WBS-15.2 | Members share planned absences early; their report work is done before or after those weeks, and longer non-critical activities (for example `WBS-7.2`, spread over two weeks) are scheduled around them within their slack. | Melih Kart | If a web activity falls behind, move it within its slack or let another full-stack member take over the remaining screens for that week. |
 | R-08    | WBS-7.1, WBS-8.1, WBS-8.2, WBS-10.1, WBS-10.2, WBS-19.2             | Centralize role checks in reusable Flask decorators (`WBS-8.1`), wrap Captain handover and approval changes in database transactions, and write dedicated `401`/`403` pytest cases for every role and endpoint.                                                          | Beyza Arısan       | Freeze new feature merges until broken role checks are patched on the backend, and add regression tests in `tests/` before redeploying.                                                                                                 |
-| R-09    | WBS-1.2, WBS-19.3, WBS-20.1, WBS-20.2                               | Configure SQLAlchemy `pool_pre_ping=True` and connection recycling in `WBS-1.2`, deploy early in Week 4 (`WBS-20.1`), and verify recovery after idle periods using the `/api/health/db` endpoint.                                                                        | Beyza Arısan       | Trigger `/api/health/db` 15 minutes before every TA meeting, usability session, and the final demo on 26 Dec to wake the Aiven database, and keep a local MySQL + seeded database backup ready if Aiven has an outage.                  |
+| R-09    | WBS-1.2, WBS-19.3, WBS-20.1, WBS-20.2                               | Configure SQLAlchemy `pool_pre_ping=True` and connection recycling in `WBS-1.2`, deploy early in the week of 2 November (`WBS-20.1`), and verify recovery after idle periods using the `/api/health/db` endpoint.                                                                        | Beyza Arısan       | Trigger `/api/health/db` 15 minutes before every TA meeting, usability session, and the final demo on 26 Dec to wake the Aiven database, and keep a local MySQL + seeded database backup ready if Aiven has an outage.                  |
 | R-10    | WBS-6.1, WBS-7.1, WBS-10.1, WBS-12.1, WBS-21.2                      | Log every TA request as a `customer-requests` GitHub issue within 48 hours, evaluate its effort against remaining slack in weekly planning, and keep optional scope (messaging groups) strictly deferred unless all in-scope tasks finish early.                         | Yusuf Erdem Cıdık  | Negotiate with the TA to defer or decline high-effort late requests with a documented written justification on the GitHub issue, or trade them against non-critical UI polish.                                                          |
-| R-11    | WBS-9.2, WBS-12.2, WBS-13.2, WBS-14.2, WBS-15.2, WBS-17.2, WBS-18.2 | Track weekly progress on the GitHub Projects board, shift non-critical tasks within their slack (as done for `WBS-10.2` and `WBS-18.1`), and cross-assign tasks across layers (e.g., Yusuf building backend APIs and Beyza building Discover web screens in `WBS-18.2`). | Melih Kart         | Reallocate hours from lighter weeks, simplify non-essential UI styling using standard `shadcn/ui` components, and have available teammates pair up on any critical-path activity at risk of slipping past Friday of its scheduled week. |
+| R-11    | WBS-9.2, WBS-12.2, WBS-13.2, WBS-14.2, WBS-15.2, WBS-17.2, WBS-18.2 | Track weekly progress on the GitHub Projects board, shift non-critical tasks within their float (as done in the version 1.1 re-plan), and cross-assign tasks across layers (e.g., Yusuf building backend APIs and Beyza building Discover web screens in `WBS-18.2`). | Melih Kart         | Reallocate hours from lighter weeks, simplify non-essential UI styling using standard `shadcn/ui` components, and have available teammates pair up on any critical-path activity at risk of slipping past Friday of its scheduled week. |
+
+### 6.3 Risk Monitoring
+
+Risks are reviewed every week in the team meeting. The team keeps the risk register up to date, and each risk's responsible member (Section 6.2) watches it during their activities. When a new risk appears, or a risk's probability or impact changes, the tables in Sections 6.1 and 6.2 are updated and the change is discussed in the next meeting. If a risk occurs, its contingency plan from Section 6.2 is started, and any effect on the schedule is reflected in the Gantt chart (Section 5.3).
