@@ -19,7 +19,7 @@ class User(db.Model):
 
     is_verified = db.Column(db.Boolean, nullable=False, default=False, server_default=db.text("0"))  # e-mail verified
     is_admin = db.Column(db.Boolean, nullable=False, default=False, server_default=db.text("0"))  # Platform Administrator
-    created_at = db.Column(db.DateTime, nullable=False, server_default=db.func.now())
+    created_at = db.Column(db.DateTime, nullable=False, server_default=db.text("CURRENT_TIMESTAMP"))
 
     memberships = db.relationship("Membership", back_populates="user", cascade="all, delete-orphan")
 

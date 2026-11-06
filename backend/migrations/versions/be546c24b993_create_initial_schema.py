@@ -1,8 +1,8 @@
 """Create initial schema
 
-Revision ID: f8ffe118ac35
+Revision ID: be546c24b993
 Revises: 
-Create Date: 2026-10-27 20:14:25.777278
+Create Date: 2026-11-06 17:29:30.559679
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'f8ffe118ac35'
+revision = 'be546c24b993'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -27,9 +27,10 @@ def upgrade():
     sa.Column('study_year', sa.SmallInteger(), nullable=True),
     sa.Column('interests', sa.String(length=500), nullable=True),
     sa.Column('photo_url', sa.String(length=500), nullable=True),
-    sa.Column('is_verified', sa.Boolean(), nullable=False),
-    sa.Column('is_admin', sa.Boolean(), nullable=False),
-    sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
+    sa.Column('photo_public_id', sa.String(length=255), nullable=True),
+    sa.Column('is_verified', sa.Boolean(), server_default=sa.text('0'), nullable=False),
+    sa.Column('is_admin', sa.Boolean(), server_default=sa.text('0'), nullable=False),
+    sa.Column('created_at', sa.DateTime(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('email')
     )
@@ -37,16 +38,17 @@ def upgrade():
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=150), nullable=False),
     sa.Column('kind', sa.Enum('club', 'project_team', name='club_kind'), nullable=False),
-    sa.Column('category', sa.String(length=50), nullable=False),
+    sa.Column('category', sa.Enum('technology', 'engineering', 'science', 'arts', 'music', 'sports', 'culture', 'social', 'career', 'entrepreneurship', 'other', name='club_category'), nullable=False),
     sa.Column('description', sa.Text(), nullable=True),
     sa.Column('logo_url', sa.String(length=500), nullable=True),
+    sa.Column('logo_public_id', sa.String(length=255), nullable=True),
     sa.Column('contact_info', sa.String(length=255), nullable=True),
-    sa.Column('status', sa.Enum('pending', 'approved', 'rejected', name='club_status'), nullable=False),
+    sa.Column('status', sa.Enum('pending', 'approved', 'rejected', name='club_status'), server_default='pending', nullable=False),
     sa.Column('rejection_reason', sa.String(length=500), nullable=True),
     sa.Column('requested_by_id', sa.Integer(), nullable=True),
     sa.Column('reviewed_by_id', sa.Integer(), nullable=True),
     sa.Column('reviewed_at', sa.DateTime(), nullable=True),
-    sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
+    sa.Column('created_at', sa.DateTime(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
     sa.ForeignKeyConstraint(['requested_by_id'], ['users.id'], ondelete='SET NULL'),
     sa.ForeignKeyConstraint(['reviewed_by_id'], ['users.id'], ondelete='SET NULL'),
     sa.PrimaryKeyConstraint('id'),
@@ -66,9 +68,10 @@ def upgrade():
     sa.Column('starts_at', sa.DateTime(), nullable=False),
     sa.Column('ends_at', sa.DateTime(), nullable=True),
     sa.Column('location', sa.String(length=255), nullable=False),
-    sa.Column('visibility', sa.Enum('public', 'members', name='event_visibility'), nullable=False),
-    sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
-    sa.Column('updated_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
+    sa.Column('visibility', sa.Enum('public', 'members', name='event_visibility'), server_default='public', nullable=False),
+    sa.Column('created_at', sa.DateTime(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(), server_default=sa.text('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'), nullable=False),
+    sa.CheckConstraint('ends_at IS NULL OR ends_at >= starts_at', name='ck_events_end_after_start'),
     sa.ForeignKeyConstraint(['club_id'], ['clubs.id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['created_by_id'], ['users.id'], ondelete='SET NULL'),
     sa.PrimaryKeyConstraint('id')
@@ -79,7 +82,7 @@ def upgrade():
     op.create_table('follows',
     sa.Column('user_id', sa.Integer(), nullable=False),
     sa.Column('club_id', sa.Integer(), nullable=False),
-    sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
+    sa.Column('created_at', sa.DateTime(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
     sa.ForeignKeyConstraint(['club_id'], ['clubs.id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('user_id', 'club_id')
@@ -88,24 +91,28 @@ def upgrade():
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=False),
     sa.Column('club_id', sa.Integer(), nullable=False),
-    sa.Column('status', sa.Enum('pending', 'approved', 'rejected', name='membership_request_status'), nullable=False),
+    sa.Column('status', sa.Enum('pending', 'approved', 'rejected', name='membership_request_status'), server_default='pending', nullable=False),
     sa.Column('decided_by_id', sa.Integer(), nullable=True),
     sa.Column('decided_at', sa.DateTime(), nullable=True),
-    sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
+    sa.Column('created_at', sa.DateTime(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
+    sa.Column('pending_flag', sa.SmallInteger(), sa.Computed("CASE WHEN status = _utf8mb4'pending' THEN 1 END", persisted=True), nullable=True),
     sa.ForeignKeyConstraint(['club_id'], ['clubs.id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['decided_by_id'], ['users.id'], ondelete='SET NULL'),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='CASCADE'),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('pending_flag', 'user_id', 'club_id', name='uq_membership_request_one_pending')
     )
     op.create_table('memberships',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=False),
     sa.Column('club_id', sa.Integer(), nullable=False),
-    sa.Column('role', sa.Enum('member', 'manager', 'captain', name='membership_role'), nullable=False),
-    sa.Column('joined_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
+    sa.Column('role', sa.Enum('member', 'manager', 'captain', name='membership_role'), server_default='member', nullable=False),
+    sa.Column('joined_at', sa.DateTime(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
+    sa.Column('captain_flag', sa.SmallInteger(), sa.Computed("CASE WHEN role = _utf8mb4'captain' THEN 1 END", persisted=True), nullable=True),
     sa.ForeignKeyConstraint(['club_id'], ['clubs.id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('captain_flag', 'club_id', name='uq_membership_one_captain'),
     sa.UniqueConstraint('user_id', 'club_id', name='uq_membership_user_club')
     )
     op.create_table('posts',
@@ -113,8 +120,8 @@ def upgrade():
     sa.Column('club_id', sa.Integer(), nullable=False),
     sa.Column('author_id', sa.Integer(), nullable=True),
     sa.Column('body', sa.Text(), nullable=True),
-    sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
-    sa.Column('updated_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
+    sa.Column('created_at', sa.DateTime(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(), server_default=sa.text('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'), nullable=False),
     sa.ForeignKeyConstraint(['author_id'], ['users.id'], ondelete='SET NULL'),
     sa.ForeignKeyConstraint(['club_id'], ['clubs.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
@@ -128,7 +135,7 @@ def upgrade():
     sa.Column('post_id', sa.Integer(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=False),
     sa.Column('body', sa.Text(), nullable=False),
-    sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
+    sa.Column('created_at', sa.DateTime(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
     sa.ForeignKeyConstraint(['post_id'], ['posts.id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
@@ -136,7 +143,7 @@ def upgrade():
     op.create_table('likes',
     sa.Column('user_id', sa.Integer(), nullable=False),
     sa.Column('post_id', sa.Integer(), nullable=False),
-    sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
+    sa.Column('created_at', sa.DateTime(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
     sa.ForeignKeyConstraint(['post_id'], ['posts.id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('user_id', 'post_id')
@@ -147,7 +154,7 @@ def upgrade():
     sa.Column('media_type', sa.Enum('image', 'video', name='media_type'), nullable=False),
     sa.Column('url', sa.String(length=500), nullable=False),
     sa.Column('public_id', sa.String(length=255), nullable=True),
-    sa.Column('position', sa.SmallInteger(), nullable=False),
+    sa.Column('position', sa.SmallInteger(), server_default='0', nullable=False),
     sa.ForeignKeyConstraint(['post_id'], ['posts.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
     )
@@ -155,7 +162,7 @@ def upgrade():
     sa.Column('user_id', sa.Integer(), nullable=False),
     sa.Column('event_id', sa.Integer(), nullable=False),
     sa.Column('response', sa.Enum('going', 'not_going', name='rsvp_response'), nullable=False),
-    sa.Column('responded_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
+    sa.Column('responded_at', sa.DateTime(), server_default=sa.text('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'), nullable=False),
     sa.ForeignKeyConstraint(['event_id'], ['events.id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('user_id', 'event_id')
@@ -169,11 +176,22 @@ def downgrade():
     op.drop_table('post_media')
     op.drop_table('likes')
     op.drop_table('comments')
+    with op.batch_alter_table('posts', schema=None) as batch_op:
+        batch_op.drop_index(batch_op.f('ix_posts_created_at'))
+        batch_op.drop_index('ix_posts_club_created')
+
     op.drop_table('posts')
     op.drop_table('memberships')
     op.drop_table('membership_requests')
     op.drop_table('follows')
+    with op.batch_alter_table('events', schema=None) as batch_op:
+        batch_op.drop_index('ix_events_club_starts')
+
     op.drop_table('events')
+    with op.batch_alter_table('clubs', schema=None) as batch_op:
+        batch_op.drop_index(batch_op.f('ix_clubs_status'))
+        batch_op.drop_index(batch_op.f('ix_clubs_category'))
+
     op.drop_table('clubs')
     op.drop_table('users')
     # ### end Alembic commands ###

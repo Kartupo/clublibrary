@@ -30,7 +30,7 @@ class Event(db.Model):
         default="public",
         server_default="public",
     )
-    created_at = db.Column(db.DateTime, nullable=False, server_default=db.func.now())
+    created_at = db.Column(db.DateTime, nullable=False, server_default=db.text("CURRENT_TIMESTAMP"))
     updated_at = db.Column(
         db.DateTime,
         nullable=False,

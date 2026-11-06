@@ -1,6 +1,6 @@
 # Database Schema (WBS-1.2)
 
-UML class diagram of the backend models in `backend/api/models/`. PK = primary key, FK = foreign key, UK = unique. A filled diamond means the child is deleted with its parent (`CASCADE`).
+UML class diagram of the backend models in `backend/api/models/`. PK = primary key, FK = foreign key, UK = unique. A filled diamond means the child is deleted with its parent (`CASCADE`). Arrows from `User` follow the multiplicity: `1` is also `CASCADE` (deleting a user deletes their memberships, requests, follows, RSVPs, likes and comments), `0..1` keeps the row and sets the link to `NULL` (`SET NULL`).
 
 ```mermaid
 classDiagram
@@ -125,6 +125,7 @@ classDiagram
     User "1" --> "0..*" Membership : has
     Club "1" *-- "0..*" Membership : has
     User "1" --> "0..*" MembershipRequest : sends
+    User "0..1" --> "0..*" MembershipRequest : decides
     Club "1" *-- "0..*" MembershipRequest : receives
     User "1" --> "0..*" Follow : follows
     Club "1" *-- "0..*" Follow : followed by
@@ -157,7 +158,17 @@ classDiagram
 | One RSVP, one like and one follow per user | Composite primary keys on `rsvps`, `likes`, `follows` |
 | `updated_at` / `responded_at` refresh on every change | `DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP`, so raw SQL updates are covered too |
 
-The generated flags are computed only from `role` / `status`, never from `user_id` or `club_id`: MySQL rejects generated columns based on a column whose foreign key has `ON DELETE CASCADE`. Application code never writes them.
+The generated flags are computed only from `role` / `status`, never from `user_id` or `club_id`: TiDB rejects generated columns based on a column whose foreign key has `ON DELETE CASCADE`. Application code never writes them; TiDB rejects a hand-written value.
+
+Handing over Captaincy must demote the old Captain **before** promoting the new one, inside one transaction: the unique key is checked on every statement, so promoting first fails.
+
+**TiDB Cloud notes**
+
+- The database runs on TiDB Cloud Starter (MySQL-compatible). Stored generated columns cannot be added with `ALTER TABLE`; a new one needs the table to be created with it.
+- CHECK constraints are only enforced when the cluster setting `tidb_enable_check_constraint` is `ON` (set once with `SET GLOBAL`; it is on for our cluster). A constraint created while it was off is ignored.
+- String literals in generated column expressions are written as `_utf8mb4'captain'`, the form TiDB reports back, so `flask db check` sees no false difference.
+- Tables use the `utf8mb4_bin` collation: text comparisons are case-sensitive, so `Ali@x.com` and `ali@x.com` are different e-mails.
+- `AUTO_INCREMENT` ids are unique but not consecutive, and a newer row can get a smaller id. Sort by `created_at`, never by `id`.
 
 **Enforced by the API, not the database**
 

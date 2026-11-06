@@ -11,7 +11,7 @@ class Post(db.Model):
     club_id = db.Column(db.Integer, db.ForeignKey("clubs.id", ondelete="CASCADE"), nullable=False)
     author_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="SET NULL"))
     body = db.Column(db.Text)
-    created_at = db.Column(db.DateTime, nullable=False, server_default=db.func.now(), index=True)
+    created_at = db.Column(db.DateTime, nullable=False, server_default=db.text("CURRENT_TIMESTAMP"), index=True)
     updated_at = db.Column(
         db.DateTime,
         nullable=False,
@@ -47,7 +47,7 @@ class Like(db.Model):
 
     user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
     post_id = db.Column(db.Integer, db.ForeignKey("posts.id", ondelete="CASCADE"), primary_key=True)
-    created_at = db.Column(db.DateTime, nullable=False, server_default=db.func.now())
+    created_at = db.Column(db.DateTime, nullable=False, server_default=db.text("CURRENT_TIMESTAMP"))
 
 
 class Comment(db.Model):
@@ -59,6 +59,6 @@ class Comment(db.Model):
     post_id = db.Column(db.Integer, db.ForeignKey("posts.id", ondelete="CASCADE"), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     body = db.Column(db.Text, nullable=False)
-    created_at = db.Column(db.DateTime, nullable=False, server_default=db.func.now())
+    created_at = db.Column(db.DateTime, nullable=False, server_default=db.text("CURRENT_TIMESTAMP"))
 
     post = db.relationship("Post", back_populates="comments")
