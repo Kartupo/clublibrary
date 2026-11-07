@@ -35,7 +35,7 @@ Clublibrary belongs to the education domain and focuses on student life outside 
 
 ### Backend Stack
 * Python with Flask – REST API *(alternatives: FastAPI, Django)*
-* MySQL – relational database, hosted on Aiven *(alternatives: PostgreSQL, Supabase)*
+* TiDB Cloud – MySQL-compatible relational database *(alternatives: PostgreSQL, Supabase)*
 * SQLAlchemy (Flask-SQLAlchemy) + Flask-Migrate – ORM and database migrations
 * Flask-JWT-Extended + bcrypt – authentication and password hashing *(alternatives: Supabase Auth)*
 * Cloudinary – photo and video storage *(alternatives: Supabase Storage)*
