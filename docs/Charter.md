@@ -21,7 +21,7 @@ Clublibrary belongs to the education domain and focuses on student life outside 
 * **User Accounts & Authentication** – Sign-up and login with a university e-mail address, e-mail verification, password reset, and user profiles (department, year, interests).
 * **Club & Project Team Management** – Creating clubs and project teams (e.g. competition, research, or engineering teams), which work the same way: profile pages (description, logo, contact info), membership requests, joining/leaving, and member lists. A requested club or project team stays pending until a Platform Administrator approves it; captains are assigned only to approved clubs and project teams.
 * **Roles & Permissions** – Role-based access with four roles in each club or project team: Student (non-member), Member, Manager, and Captain. Captains assign managers; each role has defined rights over content and events. In addition, a platform-level Platform Administrator role approves or rejects requests for new clubs and project teams.
-* **Events & Calendar** – Clubs and project teams create events of different types (social events, lectures/talks, meetings, workshops) with date, time, and location; member-exclusive or public visibility; RSVP/attendance; a personal calendar of upcoming events.
+* **Events & Calendar** – Clubs and project teams create events of different types (social events, lectures/talks, meetings, workshops) with date, time, and location; member-exclusive or public visibility; RSVP; a personal calendar of upcoming events.
 * **Posts & Media Feed** – Posts by clubs and project teams with text, photos, and videos; likes and comments; a feed for each club and team, and a personal home feed built from joined and followed clubs and teams.
 * **Discover** – Browsing and searching clubs, project teams, upcoming public events, and popular posts, with filtering by category.
 
@@ -39,7 +39,7 @@ Clublibrary belongs to the education domain and focuses on student life outside 
 * SQLAlchemy (Flask-SQLAlchemy) + Flask-Migrate – ORM and database migrations
 * Flask-JWT-Extended + bcrypt – authentication and password hashing *(alternatives: Supabase Auth)*
 * Cloudinary – photo and video storage *(alternatives: Supabase Storage)*
-* Docker – containerized deployment
+* Vercel – backend hosting *(alternatives: Render)*
 
 ### Frontend Stack
 * Next.js with TypeScript (React) *(alternatives: React with Vite)*
